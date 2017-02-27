@@ -1,0 +1,102 @@
+plugins {
+    id "com.jfrog.bintray" version "1.7"
+    id "com.github.jruby-gradle.base" version "0.1.5"
+    id "java"
+    id "checkstyle"
+    id "findbugs"
+    id "jacoco"
+}
+import com.github.jrubygradle.JRubyExec
+
+repositories {
+    mavenCentral()
+    jcenter()
+    maven { url "http://conjars.org/repo" } // pentaho-aggdesigner-algorithm
+    maven { url "http://dl.bintray.com/embulk-input-jdbc/maven" } // embulk-input-jdbc
+}
+configurations {
+    provided
+}
+
+version = "0.0.1"
+
+sourceCompatibility = 1.7
+targetCompatibility = 1.7
+
+dependencies {
+    compile  "org.embulk:embulk-core:0.8.16"
+    provided "org.embulk:embulk-core:0.8.16"
+    compile  "org.embulk.input.jdbc:embulk-input-jdbc:0.8.2"
+    compile  "org.apache.calcite:calcite-core:1.9.0"
+
+    testCompile "junit:junit:4.+"
+    testCompile "org.embulk:embulk-core:0.8.16:tests"
+    testCompile "org.embulk:embulk-standards:0.8.16"
+}
+
+task classpath(type: Copy, dependsOn: ["jar"]) {
+    doFirst { file("classpath").deleteDir() }
+    from (configurations.runtime - configurations.provided + files(jar.archivePath))
+    into "classpath"
+}
+clean { delete "classpath" }
+
+checkstyle {
+    configFile = file("${project.rootDir}/config/checkstyle/checkstyle.xml")
+    toolVersion = '6.14.1'
+}
+checkstyleMain {
+    configFile = file("${project.rootDir}/config/checkstyle/default.xml")
+    ignoreFailures = true
+}
+checkstyleTest {
+    configFile = file("${project.rootDir}/config/checkstyle/default.xml")
+    ignoreFailures = true
+}
+task checkstyle(type: Checkstyle) {
+    classpath = sourceSets.main.output + sourceSets.test.output
+    source = sourceSets.main.allJava + sourceSets.test.allJava
+}
+
+task gem(type: JRubyExec, dependsOn: ["gemspec", "classpath"]) {
+    jrubyArgs "-rrubygems/gem_runner", "-eGem::GemRunner.new.run(ARGV)", "build"
+    script "${project.name}.gemspec"
+    doLast { ant.move(file: "${project.name}-${project.version}.gem", todir: "pkg") }
+}
+
+task gemPush(type: JRubyExec, dependsOn: ["gem"]) {
+    jrubyArgs "-rrubygems/gem_runner", "-eGem::GemRunner.new.run(ARGV)", "push"
+    script "pkg/${project.name}-${project.version}.gem"
+}
+
+task "package"(dependsOn: ["gemspec", "classpath"]) << {
+    println "> Build succeeded."
+    println "> You can run embulk with '-L ${file(".").absolutePath}' argument."
+}
+
+task gemspec {
+    ext.gemspecFile = file("${project.name}.gemspec")
+    inputs.file "build.gradle"
+    outputs.file gemspecFile
+    doLast { gemspecFile.write($/
+Gem::Specification.new do |spec|
+  spec.name          = "${project.name}"
+  spec.version       = "${project.version}"
+  spec.authors       = ["Muga Nishizawa"]
+  spec.summary       = %[Apache Calcite filter plugin for Embulk]
+  spec.description   = %[Translate schema and column values by SQL-like query provided by Apache Calcite.]
+  spec.email         = ["muga.nishizawa@gmail.com"]
+  spec.licenses      = ["Apache 2.0"]
+  spec.homepage      = "https://github.com/muga/embulk-filter-calcite"
+
+  spec.files         = `git ls-files`.split("\n") + Dir["classpath/*.jar"]
+  spec.test_files    = spec.files.grep(%r"^(test|spec)/")
+  spec.require_paths = ["lib"]
+
+  spec.add_development_dependency 'bundler', ['~> 1.0']
+  spec.add_development_dependency 'rake', ['>= 10.0']
+end
+/$)
+    }
+}
+clean { delete "${project.name}.gemspec" }
