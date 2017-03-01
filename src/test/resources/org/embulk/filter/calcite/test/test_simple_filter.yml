@@ -1,0 +1,2 @@
+type: calcite
+query: 'SELECT * FROM $PAGES'
