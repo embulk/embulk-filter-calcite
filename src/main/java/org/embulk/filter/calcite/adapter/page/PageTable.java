@@ -11,6 +11,7 @@ import org.apache.calcite.rel.type.RelProtoDataType;
 import org.apache.calcite.schema.ScannableTable;
 import org.apache.calcite.schema.impl.AbstractTable;
 import org.apache.calcite.util.Pair;
+import org.embulk.filter.calcite.EmbulkToCalciteValueMapper;
 import org.embulk.spi.Column;
 import org.embulk.spi.Page;
 import org.embulk.spi.Schema;
@@ -25,11 +26,13 @@ public class PageTable
     public static ThreadLocal<Page> page = new ThreadLocal<>();
 
     private final Schema schema;
+    private final EmbulkToCalciteValueMapper valueMapper;
     private final RelProtoDataType protoRowType;
 
-    PageTable(Schema schema, RelProtoDataType protoRowType)
+    PageTable(Schema schema, EmbulkToCalciteValueMapper valueMapper, RelProtoDataType protoRowType)
     {
         this.schema = schema;
+        this.valueMapper = valueMapper;
         this.protoRowType = protoRowType;
     }
 
@@ -56,7 +59,7 @@ public class PageTable
         return new AbstractEnumerable<Object[]>() {
             public Enumerator<Object[]> enumerator()
             {
-                PageEnumerator enumerator = new PageEnumerator(schema);
+                PageEnumerator enumerator = new PageEnumerator(schema, valueMapper);
                 if (page.get() != null) {
                     enumerator.setPage(page.get());
                 }
