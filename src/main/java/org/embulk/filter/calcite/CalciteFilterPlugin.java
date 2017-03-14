@@ -1,5 +1,6 @@
 package org.embulk.filter.calcite;
 
+import com.google.common.base.Optional;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -27,7 +28,6 @@ import org.embulk.spi.Page;
 import org.embulk.spi.PageBuilder;
 import org.embulk.spi.PageOutput;
 import org.embulk.spi.Schema;
-import org.embulk.spi.type.Type;
 import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 
@@ -86,7 +86,7 @@ public class CalciteFilterPlugin
 
         // Set input schema and value mapper in PageSchema's thread local variables
         PageSchema.schema.set(inputSchema);
-        PageSchema.valueMapper.set(newValueMapper(task, inputSchema));
+        PageSchema.pageConverter.set(newPageConverter(task, inputSchema));
 
         JdbcSchema querySchema;
         try (Connection conn = newConnection(props)) { // SQLException thrown by conn.close()
@@ -100,9 +100,9 @@ public class CalciteFilterPlugin
         control.run(task.dump(), buildOutputSchema(task, querySchema));
     }
 
-    private EmbulkToCalciteValueMapper newValueMapper(PluginTask task, Schema inputSchema)
+    private PageConverter newPageConverter(PluginTask task, Schema inputSchema)
     {
-        return new EmbulkToCalciteValueMapper(inputSchema, task.getDefaultTimeZone().toTimeZone());
+        return new PageConverter(inputSchema, task.getDefaultTimeZone().toTimeZone());
     }
 
     private Connection newConnection(Properties props)
@@ -184,27 +184,31 @@ public class CalciteFilterPlugin
 
     private Schema buildOutputSchema(PluginTask task, JdbcSchema querySchema)
     {
-        ColumnGetterFactory factory = newColumnGetterFactory(task, null);
+        ColumnGetterFactory factory = newColumnGetterFactory(task, Optional.<PageBuilder>absent());
+        List<ColumnGetter> getters = newColumnGetters(factory, querySchema);
+
         Schema.Builder schema = Schema.builder();
-        for (JdbcColumn column : querySchema.getColumns()) {
-            String name = column.getName();
-            Type type = factory.newColumnGetter(null, null, column, newJdbcColumnOption()).getToType();
-            schema.add(name, type);
+        for (int i = 0; i < querySchema.getColumns().size(); i++) {
+            schema.add(querySchema.getColumn(i).getName(), getters.get(i).getToType());
         }
         return schema.build();
     }
 
-    private ColumnGetterFactory newColumnGetterFactory(PluginTask task, PageBuilder pageBuilder)
+    private ColumnGetterFactory newColumnGetterFactory(PluginTask task, Optional<PageBuilder> pageBuilder)
     {
-        return new FilterColumnGetterFactory(pageBuilder, task.getDefaultTimeZone());
+        if (pageBuilder.isPresent()) {
+            return new FilterColumnGetterFactory(pageBuilder.get(), task.getDefaultTimeZone());
+        }
+        else {
+            return new FilterColumnGetterFactory(null, task.getDefaultTimeZone());
+        }
     }
 
     private List<ColumnGetter> newColumnGetters(ColumnGetterFactory factory, JdbcSchema querySchema)
     {
         ImmutableList.Builder<ColumnGetter> getters = ImmutableList.builder();
         for (JdbcColumn column : querySchema.getColumns()) {
-            JdbcColumnOption columnOption = newJdbcColumnOption();
-            getters.add(factory.newColumnGetter(null, null, column, columnOption));
+            getters.add(factory.newColumnGetter(null, null, column, newJdbcColumnOption()));
         }
         return getters.build();
     }
@@ -220,9 +224,9 @@ public class CalciteFilterPlugin
     {
         PluginTask task = taskSource.loadTask(PluginTask.class);
         Properties props = System.getProperties(); // TODO should be configured as config option
-        EmbulkToCalciteValueMapper visitor = newValueMapper(task, inputSchema);
+        PageConverter visitor = newPageConverter(task, inputSchema);
         PageBuilder pageBuilder = new PageBuilder(task.getBufferAllocator(), outputSchema, output);
-        ColumnGetterFactory factory = newColumnGetterFactory(task, pageBuilder);
+        ColumnGetterFactory factory = newColumnGetterFactory(task, Optional.of(pageBuilder));
         List<ColumnGetter> getters = newColumnGetters(factory, task.getQuerySchema());
         return new FilterPageOutput(inputSchema, outputSchema, task.getQuery(), visitor, pageBuilder, getters, props);
     }
@@ -233,12 +237,12 @@ public class CalciteFilterPlugin
         private final Schema inputSchema;
         private final Schema outputSchema;
         private final String query;
-        private final EmbulkToCalciteValueMapper visitor;
+        private final PageConverter visitor;
         private final PageBuilder pageBuilder;
         private final List<ColumnGetter> getters;
         private final Properties props;
 
-        FilterPageOutput(Schema inputSchema, Schema outputSchema, String query, EmbulkToCalciteValueMapper visitor,
+        FilterPageOutput(Schema inputSchema, Schema outputSchema, String query, PageConverter visitor,
                 PageBuilder pageBuilder, List<ColumnGetter> getters, Properties props)
         {
             this.inputSchema = inputSchema;
@@ -255,7 +259,7 @@ public class CalciteFilterPlugin
         {
             // Set input schema and value mapper in PageSchema's thread local variables
             PageSchema.schema.set(inputSchema);
-            PageSchema.valueMapper.set(visitor);
+            PageSchema.pageConverter.set(visitor);
 
             // Set page in PageTable's thread local variables
             PageTable.page.set(page);

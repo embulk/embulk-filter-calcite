@@ -10,14 +10,18 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
 
-public class EmbulkToCalciteValueMapper
+/**
+ * This class converts Embulk's Page values into Calcite's row types. It refers to
+ * org.apache.calcite.adapter.csv.CsvEnumerator.
+ */
+public class PageConverter
         implements ColumnVisitor
 {
     private final TimeZone defaultTimeZone;
     private final Object[] row;
     private PageReader pageReader;
 
-    public EmbulkToCalciteValueMapper(Schema schema, TimeZone defaultTimeZone)
+    public PageConverter(Schema schema, TimeZone defaultTimeZone)
     {
         this.defaultTimeZone = defaultTimeZone;
         this.row = new Object[schema.getColumnCount()];

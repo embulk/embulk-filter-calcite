@@ -9,32 +9,36 @@ import java.util.Map;
 enum PageFieldType
 {
     STRING(String.class, "string"),
-    BOOLEAN(boolean.class, "boolean"),
-    LONG(long.class, "long"),
-    DOUBLE(double.class, "double"),
-    TIMESTAMP(org.embulk.spi.time.Timestamp.class, "timestamp");
+    BOOLEAN(Boolean.class, Boolean.TYPE.getSimpleName()),
+    LONG(Long.class, Long.TYPE.getSimpleName()),
+    DOUBLE(Double.class, Double.TYPE.getSimpleName()),
+    TIMESTAMP(java.sql.Timestamp.class, "timestamp");
 
-    private final Class clazz;
-    private final String simpleName;
+    private static final Map<String, PageFieldType> MAP = new HashMap<>();
 
-    private static final Map<String, PageFieldType> MAP = new HashMap<String, PageFieldType>();
-
-    static {
+    static
+    {
         for (PageFieldType value : values()) {
             MAP.put(value.simpleName, value);
         }
     }
 
-    PageFieldType(Class clazz, String simpleName) {
+    private final Class clazz;
+    private final String simpleName;
+
+    PageFieldType(Class clazz, String simpleName)
+    {
         this.clazz = clazz;
         this.simpleName = simpleName;
     }
 
-    public RelDataType toType(JavaTypeFactory typeFactory) {
+    public RelDataType toType(JavaTypeFactory typeFactory)
+    {
         return typeFactory.createJavaType(clazz);
     }
 
-    public static PageFieldType of(String typeString) {
+    public static PageFieldType of(String typeString)
+    {
         return MAP.get(typeString);
     }
 }

@@ -1,7 +1,7 @@
 package org.embulk.filter.calcite.adapter.page;
 
 import org.apache.calcite.linq4j.Enumerator;
-import org.embulk.filter.calcite.EmbulkToCalciteValueMapper;
+import org.embulk.filter.calcite.PageConverter;
 import org.embulk.spi.Page;
 import org.embulk.spi.PageReader;
 import org.embulk.spi.Schema;
@@ -10,10 +10,10 @@ public class PageEnumerator
         implements Enumerator<Object[]>
 {
     private final Schema schema;
-    private final EmbulkToCalciteValueMapper valueMapper;
+    private final PageConverter valueMapper;
     private final PageReader pageReader;
 
-    public PageEnumerator(Schema schema, EmbulkToCalciteValueMapper valueMapper)
+    public PageEnumerator(Schema schema, PageConverter valueMapper)
     {
         this.schema = schema;
         this.pageReader = new PageReader(schema);
@@ -29,6 +29,7 @@ public class PageEnumerator
     @Override
     public Object[] current()
     {
+        // this is called from org.apache.calcite.linq4j.EnumerableDefaults
         schema.visitColumns(valueMapper);
         return valueMapper.getRow();
     }
