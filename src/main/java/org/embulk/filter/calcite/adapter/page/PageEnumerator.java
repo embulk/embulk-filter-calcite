@@ -10,28 +10,28 @@ public class PageEnumerator
         implements Enumerator<Object[]>
 {
     private final Schema schema;
-    private final PageConverter valueMapper;
+    private final PageConverter pageConverter;
     private final PageReader pageReader;
 
-    public PageEnumerator(Schema schema, PageConverter valueMapper)
+    public PageEnumerator(Schema schema, PageConverter pageConverter)
     {
         this.schema = schema;
         this.pageReader = new PageReader(schema);
-        this.valueMapper = valueMapper;
+        this.pageConverter = pageConverter;
     }
 
     public void setPage(Page page)
     {
         this.pageReader.setPage(page);
-        this.valueMapper.setPageReader(pageReader);
+        this.pageConverter.setPageReader(pageReader);
     }
 
     @Override
     public Object[] current()
     {
         // this is called from org.apache.calcite.linq4j.EnumerableDefaults
-        schema.visitColumns(valueMapper);
-        return valueMapper.getRow();
+        schema.visitColumns(pageConverter);
+        return pageConverter.getRow();
     }
 
     @Override
