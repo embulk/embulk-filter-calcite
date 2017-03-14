@@ -11,6 +11,7 @@ import org.apache.calcite.rel.type.RelProtoDataType;
 import org.apache.calcite.schema.ScannableTable;
 import org.apache.calcite.schema.impl.AbstractTable;
 import org.apache.calcite.util.Pair;
+import org.embulk.filter.calcite.PageConverter;
 import org.embulk.spi.Column;
 import org.embulk.spi.Page;
 import org.embulk.spi.Schema;
@@ -22,6 +23,7 @@ public class PageTable
         extends AbstractTable
         implements ScannableTable
 {
+    public static ThreadLocal<PageConverter> pageConverter = new ThreadLocal<>();
     public static ThreadLocal<Page> page = new ThreadLocal<>();
 
     private final Schema schema;
@@ -56,7 +58,7 @@ public class PageTable
         return new AbstractEnumerable<Object[]>() {
             public Enumerator<Object[]> enumerator()
             {
-                PageEnumerator enumerator = new PageEnumerator(schema);
+                PageEnumerator enumerator = new PageEnumerator(schema, pageConverter.get());
                 if (page.get() != null) {
                     enumerator.setPage(page.get());
                 }

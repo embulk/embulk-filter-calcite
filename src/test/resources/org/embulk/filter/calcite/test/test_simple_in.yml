@@ -1,7 +1,7 @@
 type: file
 parser:
   charset: UTF-8
-  newline: CRLF
+  newline: LF
   type: csv
   delimiter: ','
   quote: '"'
@@ -13,7 +13,6 @@ parser:
   columns:
   - {name: id, type: long}
   - {name: account, type: long}
-  #- {name: time, type: timestamp, format: '%Y-%m-%d %H:%M:%S'}
-  - {name: time, type: string}
+  - {name: time, type: timestamp, format: '%Y-%m-%d %H:%M:%S'}
   - {name: purchase, type: string}
   - {name: comment, type: string}
