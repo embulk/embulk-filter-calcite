@@ -6,8 +6,6 @@ import org.embulk.spi.PageReader;
 import org.embulk.spi.Schema;
 
 import java.math.BigDecimal;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
 import java.util.TimeZone;
 
 /**
@@ -97,11 +95,12 @@ public class PageConverter
             row[i] = null;
         }
         else {
-            // Embulk's timestamp is converted into java.util.Calendar
+            // Embulk's timestamp is converted into java.sql.Timestmap
             org.embulk.spi.time.Timestamp timestamp = pageReader.getTimestamp(i);
-            Calendar c = GregorianCalendar.getInstance(defaultTimeZone);
-            c.setTimeInMillis(timestamp.getEpochSecond() * 1000 + timestamp.getNano() / 1000000);
-            row[i] = c;
+            long milliseconds = timestamp.getEpochSecond() * 1000 + timestamp.getNano() / 1000000;
+            java.sql.Timestamp ts = new java.sql.Timestamp(milliseconds);
+            ts.setNanos(timestamp.getNano());
+            row[i] = ts;
         }
     }
 
