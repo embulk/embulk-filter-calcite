@@ -12,7 +12,6 @@ public class PageSchema
         extends AbstractSchema
 {
     public static Schema schema;
-    public static ThreadLocal<PageConverter> pageConverter = new ThreadLocal<>();
 
     public PageSchema()
     {
@@ -22,6 +21,6 @@ public class PageSchema
     @Override
     protected Map<String, Table> getTableMap()
     {
-        return ImmutableMap.<String, Table>of("$PAGES", new PageTable(schema, pageConverter.get(), null));
+        return ImmutableMap.<String, Table>of("$PAGES", new PageTable(schema, null));
     }
 }

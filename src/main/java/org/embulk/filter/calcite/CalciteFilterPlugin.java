@@ -84,11 +84,11 @@ public class CalciteFilterPlugin
         PluginTask task = config.loadConfig(PluginTask.class);
         Properties props = System.getProperties(); // TODO should be configured as config option
 
-        // Set input schema
+        // Set input schema in PageSchema
         PageSchema.schema = inputSchema;
 
-        // Set page converter in PageSchema's thread local variables
-        PageSchema.pageConverter.set(newPageConverter(task, inputSchema));
+        // Set page converter in PageTable
+        PageTable.pageConverter.set(newPageConverter(task, inputSchema));
 
         JdbcSchema querySchema;
         try (Connection conn = newConnection(props)) { // SQLException thrown by conn.close()
@@ -224,16 +224,19 @@ public class CalciteFilterPlugin
     @Override
     public PageOutput open(TaskSource taskSource, Schema inputSchema, Schema outputSchema, PageOutput output)
     {
-        // Set input schema
+        PluginTask task = taskSource.loadTask(PluginTask.class);
+
+        // Set input schema in PageSchema
         PageSchema.schema = inputSchema;
 
-        PluginTask task = taskSource.loadTask(PluginTask.class);
-        Properties props = System.getProperties(); // TODO should be configured as config option
-        PageConverter visitor = newPageConverter(task, inputSchema);
+        // Set page converter in PageTable
+        PageTable.pageConverter.set(newPageConverter(task, inputSchema));
+
         PageBuilder pageBuilder = new PageBuilder(task.getBufferAllocator(), outputSchema, output);
         ColumnGetterFactory factory = newColumnGetterFactory(task, Optional.of(pageBuilder));
         List<ColumnGetter> getters = newColumnGetters(factory, task.getQuerySchema());
-        return new FilterPageOutput(outputSchema, task.getQuery(), visitor, pageBuilder, getters, props);
+        Properties props = System.getProperties(); // TODO should be configured as config option
+        return new FilterPageOutput(outputSchema, task.getQuery(), pageBuilder, getters, props);
     }
 
     class FilterPageOutput
@@ -241,17 +244,15 @@ public class CalciteFilterPlugin
     {
         private final Schema outputSchema;
         private final String query;
-        private final PageConverter visitor;
         private final PageBuilder pageBuilder;
         private final List<ColumnGetter> getters;
         private final Properties props;
 
-        FilterPageOutput(Schema outputSchema, String query, PageConverter visitor,
+        FilterPageOutput(Schema outputSchema, String query,
                 PageBuilder pageBuilder, List<ColumnGetter> getters, Properties props)
         {
             this.outputSchema = outputSchema;
             this.query = query;
-            this.visitor = visitor;
             this.pageBuilder = pageBuilder;
             this.getters = getters;
             this.props = props;
@@ -260,9 +261,6 @@ public class CalciteFilterPlugin
         @Override
         public void add(Page page)
         {
-            // Set input schema and value mapper in PageSchema's thread local variables
-            PageSchema.pageConverter.set(visitor);
-
             // Set page in PageTable's thread local variables
             PageTable.page.set(page);
 

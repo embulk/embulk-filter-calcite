@@ -23,16 +23,15 @@ public class PageTable
         extends AbstractTable
         implements ScannableTable
 {
+    public static ThreadLocal<PageConverter> pageConverter = new ThreadLocal<>();
     public static ThreadLocal<Page> page = new ThreadLocal<>();
 
     private final Schema schema;
-    private final PageConverter valueMapper;
     private final RelProtoDataType protoRowType;
 
-    PageTable(Schema schema, PageConverter valueMapper, RelProtoDataType protoRowType)
+    PageTable(Schema schema, RelProtoDataType protoRowType)
     {
         this.schema = schema;
-        this.valueMapper = valueMapper;
         this.protoRowType = protoRowType;
     }
 
@@ -59,7 +58,7 @@ public class PageTable
         return new AbstractEnumerable<Object[]>() {
             public Enumerator<Object[]> enumerator()
             {
-                PageEnumerator enumerator = new PageEnumerator(schema, valueMapper);
+                PageEnumerator enumerator = new PageEnumerator(schema, pageConverter.get());
                 if (page.get() != null) {
                     enumerator.setPage(page.get());
                 }
