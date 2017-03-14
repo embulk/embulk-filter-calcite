@@ -87,7 +87,7 @@ public class CalciteFilterPlugin
         // Set input schema in PageSchema
         PageSchema.schema = inputSchema;
 
-        // Set page converter in PageTable
+        // Set page converter as TLS variable in PageTable
         PageTable.pageConverter.set(newPageConverter(task, inputSchema));
 
         JdbcSchema querySchema;
@@ -226,10 +226,10 @@ public class CalciteFilterPlugin
     {
         PluginTask task = taskSource.loadTask(PluginTask.class);
 
-        // Set input schema in PageSchema
+        // Set input schema in PageSchema for various types of executor plugins
         PageSchema.schema = inputSchema;
 
-        // Set page converter in PageTable
+        // Set page converter as TLS variable in PageTable
         PageTable.pageConverter.set(newPageConverter(task, inputSchema));
 
         PageBuilder pageBuilder = new PageBuilder(task.getBufferAllocator(), outputSchema, output);
@@ -248,8 +248,7 @@ public class CalciteFilterPlugin
         private final List<ColumnGetter> getters;
         private final Properties props;
 
-        FilterPageOutput(Schema outputSchema, String query,
-                PageBuilder pageBuilder, List<ColumnGetter> getters, Properties props)
+        FilterPageOutput(Schema outputSchema, String query, PageBuilder pageBuilder, List<ColumnGetter> getters, Properties props)
         {
             this.outputSchema = outputSchema;
             this.query = query;
@@ -261,7 +260,7 @@ public class CalciteFilterPlugin
         @Override
         public void add(Page page)
         {
-            // Set page in PageTable's thread local variables
+            // Set page as TLS variable in PageTable
             PageTable.page.set(page);
 
             try (Connection conn = newConnection(props);
