@@ -18,9 +18,7 @@ filters:
     query: SELECT * FROM $PAGES
 ```
 
-Users can define `SELECT` query as query option in the filter config section. `$PAGES` represents Pages that input plugin creates and sends. `$PAGES` schema is Embulk input schema given. On the other hand, the output schema of the plugin is built from the metadata of query result.
-
-SQL language provided by Apache Calcite: https://calcite.apache.org/docs/reference.html
+Users can define `SELECT` query as query option in the filter config section. `$PAGES` represents Pages that input plugin creates and sends. `$PAGES` schema is Embulk input schema given. On the other hand, the output schema of the plugin is built from the metadata of query result. Embulk types are converted into Apache Calcite types internally. This is type mapping between Embulk and Apache Calcite.
 
 | Embulk type | Apache Calcite type |      JDBC type      |
 | ----------- | ------------------- | ------------------- |
@@ -40,11 +38,21 @@ Data types by Apache Calcite: https://calcite.apache.org/docs/reference.html#dat
 
 ## Example
 
+This config enables removing rows not associated to id 1 and 2 from Pages.
 ```yaml
 filters:
   - type: calcite
-    query: SELECT * FROM $PAGES
+    query: SELECT * FROM $PAGES WHERE id IN (1, 2)
 ```
+
+This enables adding new column and inserting the value combined 2 string column values.
+```yaml
+filters:
+  - type: calcite
+    query: SELECT first_name || last_name AS name, * FROM $PAGES
+```
+
+SQL language provided by Apache Calcite: https://calcite.apache.org/docs/reference.html
 
 ## Build
 
