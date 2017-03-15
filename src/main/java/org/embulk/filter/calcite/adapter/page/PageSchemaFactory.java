@@ -7,6 +7,7 @@ import java.util.Map;
 
 /**
  * Factory that creates a {@link PageSchema}.
+ * @see https://github.com/apache/calcite/blob/master/example/csv/src/main/java/org/apache/calcite/adapter/csv/CsvSchemaFactory.java
  */
 public class PageSchemaFactory
         implements SchemaFactory

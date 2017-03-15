@@ -65,6 +65,7 @@ public class CalciteFilterPlugin
 
         // TODO support jdbc Url properties
         // TODO support column_options: option
+        // TODO support options: option
 
         @ConfigInject
         public BufferAllocator getBufferAllocator();
@@ -124,7 +125,8 @@ public class CalciteFilterPlugin
 
     private String buildJdbcUrl()
     {
-        // build custom model
+        // build a json model to apply Page storage adaptor
+        // @see https://github.com/apache/calcite/blob/master/example/csv/src/test/resources/model.json
         ImmutableMap.Builder<String, Object> map = ImmutableMap.builder();
         map.put("version", "1.0");
         map.put("defaultSchema", "page");
@@ -135,10 +137,10 @@ public class CalciteFilterPlugin
                         "factory", PageSchemaFactory.class.getName()
                 )
         ));
-        String customModel = getModelManager().writeObject(map.build());
+        String jsonModel = getModelManager().writeObject(map.build());
 
         // build Jdbc URL
-        String jdbcUrl = format(ENGLISH, "jdbc:calcite:model=inline:%s", customModel);
+        String jdbcUrl = format(ENGLISH, "jdbc:calcite:model=inline:%s", jsonModel);
         log.info(format(ENGLISH, "Generated Jdbc URL: %s", jdbcUrl));
         return jdbcUrl;
     }
