@@ -1,0 +1,2 @@
+type: calcite
+query: 'SELECT purchase, purchase || purchase, CHAR_LENGTH(purchase), SUBSTRING(purchase FROM 2), SUBSTRING(purchase FROM 2 FOR 4) FROM $PAGES'

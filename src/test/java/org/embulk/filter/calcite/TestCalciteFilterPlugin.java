@@ -41,6 +41,34 @@ public class TestCalciteFilterPlugin
                 "test_simple_source.csv", "test_simple_expected.csv");
     }
 
+    @Test
+    public void testIntOperators() throws Exception
+    {
+        assertRecordsByResource(embulk, "test_int_ops_in.yml", "test_int_ops_filter.yml",
+                "test_int_ops_source.csv", "test_int_ops_expected.csv");
+    }
+
+    @Test
+    public void testWhereIntCondition() throws Exception
+    {
+        assertRecordsByResource(embulk, "test_where_int_cond_in.yml", "test_where_int_cond_filter.yml",
+                "test_where_int_cond_source.csv", "test_where_int_cond_expected.csv");
+    }
+
+    @Test
+    public void testStringOperators() throws Exception
+    {
+        assertRecordsByResource(embulk, "test_string_ops_in.yml", "test_string_ops_filter.yml",
+                "test_string_ops_source.csv", "test_string_ops_expected.csv");
+    }
+
+    @Test
+    public void testWhereStringCondition() throws Exception
+    {
+        assertRecordsByResource(embulk, "test_where_string_cond_in.yml", "test_where_string_cond_filter.yml",
+                "test_where_string_cond_source.csv", "test_where_string_cond_expected.csv");
+    }
+
     static void assertRecordsByResource(TestingEmbulk embulk,
             String inConfigYamlResourceName, String filterConfigYamlResourceName,
             String sourceCsvResourceName, String resultCsvResourceName)
