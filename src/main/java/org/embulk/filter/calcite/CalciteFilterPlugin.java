@@ -90,17 +90,21 @@ public class CalciteFilterPlugin
 
         // Set page converter as TLS variable in PageTable
         PageTable.pageConverter.set(newPageConverter(task, inputSchema));
+        try {
+            JdbcSchema querySchema;
+            try (Connection conn = newConnection(props)) { // SQLException thrown by conn.close()
+                querySchema = getQuerySchema(task, conn);
+                task.setQuerySchema(querySchema);
+            }
+            catch (SQLException e) {
+                throw Throwables.propagate(e);
+            }
 
-        JdbcSchema querySchema;
-        try (Connection conn = newConnection(props)) { // SQLException thrown by conn.close()
-            querySchema = getQuerySchema(task, conn);
-            task.setQuerySchema(querySchema);
+            control.run(task.dump(), buildOutputSchema(task, querySchema));
         }
-        catch (SQLException e) {
-            throw Throwables.propagate(e);
+        finally {
+            PageTable.pageConverter.remove();
         }
-
-        control.run(task.dump(), buildOutputSchema(task, querySchema));
     }
 
     private PageConverter newPageConverter(PluginTask task, Schema inputSchema)
