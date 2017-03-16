@@ -26,7 +26,7 @@ enum PageFieldType
     private final Class clazz;
     private final String simpleName;
 
-    PageFieldType(Class clazz, String simpleName)
+    private PageFieldType(Class clazz, String simpleName)
     {
         this.clazz = clazz;
         this.simpleName = simpleName;
