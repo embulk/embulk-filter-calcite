@@ -11,8 +11,7 @@ import com.github.jrubygradle.JRubyExec
 repositories {
     mavenCentral()
     jcenter()
-    maven { url "http://conjars.org/repo" } // pentaho-aggdesigner-algorithm
-    maven { url "http://dl.bintray.com/embulk-input-jdbc/maven" } // embulk-input-jdbc
+    maven { url "https://dl.bintray.com/embulk-input-jdbc/maven" }  // for embulk-input-jdbc
 }
 configurations {
     provided
@@ -27,7 +26,7 @@ dependencies {
     compile  "org.embulk:embulk-core:0.8.17"
     provided "org.embulk:embulk-core:0.8.17"
     compile  "org.embulk.input.jdbc:embulk-input-jdbc:0.8.2"
-    compile  "org.apache.calcite:calcite-core:1.9.0"
+    compile  "org.apache.calcite:calcite-core:1.11.0"
 
     testCompile "junit:junit:4.+"
     testCompile "org.embulk:embulk-core:0.8.17:tests"
