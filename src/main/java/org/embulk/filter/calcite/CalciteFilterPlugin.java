@@ -241,7 +241,7 @@ public class CalciteFilterPlugin
         return new FilterPageOutput(outputSchema, task.getQuery(), pageBuilder, getters, props);
     }
 
-    class FilterPageOutput
+    private class FilterPageOutput
             implements PageOutput
     {
         private final Schema outputSchema;
@@ -250,7 +250,7 @@ public class CalciteFilterPlugin
         private final List<ColumnGetter> getters;
         private final Properties props;
 
-        FilterPageOutput(Schema outputSchema, String query, PageBuilder pageBuilder, List<ColumnGetter> getters, Properties props)
+        private FilterPageOutput(Schema outputSchema, String query, PageBuilder pageBuilder, List<ColumnGetter> getters, Properties props)
         {
             this.outputSchema = outputSchema;
             this.query = query;
