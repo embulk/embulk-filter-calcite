@@ -90,17 +90,21 @@ public class CalciteFilterPlugin
 
         // Set page converter as TLS variable in PageTable
         PageTable.pageConverter.set(newPageConverter(task, inputSchema));
+        try {
+            JdbcSchema querySchema;
+            try (Connection conn = newConnection(props)) { // SQLException thrown by conn.close()
+                querySchema = getQuerySchema(task, conn);
+                task.setQuerySchema(querySchema);
+            }
+            catch (SQLException e) {
+                throw Throwables.propagate(e);
+            }
 
-        JdbcSchema querySchema;
-        try (Connection conn = newConnection(props)) { // SQLException thrown by conn.close()
-            querySchema = getQuerySchema(task, conn);
-            task.setQuerySchema(querySchema);
+            control.run(task.dump(), buildOutputSchema(task, querySchema));
         }
-        catch (SQLException e) {
-            throw Throwables.propagate(e);
+        finally {
+            PageTable.pageConverter.remove();
         }
-
-        control.run(task.dump(), buildOutputSchema(task, querySchema));
     }
 
     private PageConverter newPageConverter(PluginTask task, Schema inputSchema)
@@ -231,14 +235,12 @@ public class CalciteFilterPlugin
         // Set input schema in PageSchema for various types of executor plugins
         PageSchema.schema = inputSchema;
 
-        // Set page converter as TLS variable in PageTable
-        PageTable.pageConverter.set(newPageConverter(task, inputSchema));
-
         PageBuilder pageBuilder = new PageBuilder(task.getBufferAllocator(), outputSchema, output);
+        PageConverter pageConverter = newPageConverter(task, inputSchema);
         ColumnGetterFactory factory = newColumnGetterFactory(task, Optional.of(pageBuilder));
         List<ColumnGetter> getters = newColumnGetters(factory, task.getQuerySchema());
         Properties props = System.getProperties(); // TODO should be configured as config option
-        return new FilterPageOutput(outputSchema, task.getQuery(), pageBuilder, getters, props);
+        return new FilterPageOutput(outputSchema, task.getQuery(), pageBuilder, pageConverter, getters, props);
     }
 
     private class FilterPageOutput
@@ -247,14 +249,17 @@ public class CalciteFilterPlugin
         private final Schema outputSchema;
         private final String query;
         private final PageBuilder pageBuilder;
+        private final PageConverter pageConverter;
         private final List<ColumnGetter> getters;
         private final Properties props;
 
-        private FilterPageOutput(Schema outputSchema, String query, PageBuilder pageBuilder, List<ColumnGetter> getters, Properties props)
+        private FilterPageOutput(Schema outputSchema, String query, PageBuilder pageBuilder, PageConverter pageConverter,
+                List<ColumnGetter> getters, Properties props)
         {
             this.outputSchema = outputSchema;
             this.query = query;
             this.pageBuilder = pageBuilder;
+            this.pageConverter = pageConverter;
             this.getters = getters;
             this.props = props;
         }
@@ -262,6 +267,9 @@ public class CalciteFilterPlugin
         @Override
         public void add(Page page)
         {
+            // Set page converter as TLS variable in PageTable
+            PageTable.pageConverter.set(pageConverter);
+
             // Set page as TLS variable in PageTable
             PageTable.page.set(page);
 
@@ -281,6 +289,7 @@ public class CalciteFilterPlugin
                 throw Throwables.propagate(e); // TODO better exception handling? error messages?
             }
             finally {
+                PageTable.pageConverter.remove();
                 PageTable.page.remove();
             }
         }
