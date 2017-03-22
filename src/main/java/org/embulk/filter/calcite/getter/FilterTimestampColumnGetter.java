@@ -3,7 +3,6 @@ package org.embulk.filter.calcite.getter;
 import org.embulk.input.jdbc.getter.TimestampColumnGetter;
 import org.embulk.spi.PageBuilder;
 import org.embulk.spi.time.Timestamp;
-import org.embulk.spi.time.TimestampFormatter;
 import org.embulk.spi.type.Type;
 import org.joda.time.DateTimeZone;
 
@@ -19,9 +18,9 @@ public class FilterTimestampColumnGetter
 {
     private static final ThreadLocal<Calendar> calendar = new ThreadLocal<>();
 
-    public FilterTimestampColumnGetter(PageBuilder to, Type toType, TimestampFormatter timestampFormatter, DateTimeZone timeZone)
+    public FilterTimestampColumnGetter(PageBuilder to, Type toType, DateTimeZone timeZone)
     {
-        super(to, toType, timestampFormatter);
+        super(to, toType, null);
         calendar.set(getInstance(getTimeZone(timeZone.getID()))); // set TLS here
     }
 

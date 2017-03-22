@@ -7,7 +7,6 @@ import org.embulk.input.jdbc.JdbcInputConnection;
 import org.embulk.input.jdbc.getter.ColumnGetter;
 import org.embulk.input.jdbc.getter.ColumnGetterFactory;
 import org.embulk.spi.PageBuilder;
-import org.embulk.spi.time.TimestampFormatter;
 import org.embulk.spi.type.Type;
 import org.joda.time.DateTimeZone;
 
@@ -28,18 +27,10 @@ public class FilterColumnGetterFactory
         String valueType = option.getValueType();
         Type toType = getToType(option);
         if (valueType.equals("coalesce") && sqlTypeToValueType(column, column.getSqlType()).equals("timestamp")) {
-            return new FilterTimestampColumnGetter(to, toType, newTimestampFormatter(option, "%Y-%m-%d"), option.getTimeZone().or(defaultTimeZone));
+            return new FilterTimestampColumnGetter(to, toType, option.getTimeZone().or(defaultTimeZone));
         }
         else {
             return super.newColumnGetter(con, task, column, option);
         }
-    }
-
-    private TimestampFormatter newTimestampFormatter(JdbcColumnOption option, String defaultTimestampFormat)
-    {
-        return new TimestampFormatter(
-                option.getJRuby(),
-                option.getTimestampFormat().isPresent() ? option.getTimestampFormat().get().getFormat() : defaultTimestampFormat,
-                option.getTimeZone().or(defaultTimeZone));
     }
 }
