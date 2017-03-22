@@ -34,7 +34,7 @@ Data types by Apache Calcite: https://calcite.apache.org/docs/reference.html#dat
 ## Configuration
 
 - **query**: SQL to run (string)
-- **default_timezone**: If the sql type of a column is `date`/`time`/`datetime` and the embulk type is `string`, column values are formatted int this default_timezone. You can overwrite timezone for each columns using column_options option. (string, default: `UTC`)
+- **default_timezone**: Set JDBC connect 'timeZone' param (string)
 
 ## Example
 
@@ -50,6 +50,14 @@ This enables adding new column and inserting the value combined 2 string column 
 filters:
   - type: calcite
     query: SELECT first_name || last_name AS name, * FROM $PAGES
+```
+
+Adds the new column by CURRENT_TIMESTAMP function.
+```yaml
+filters:
+  - type: calcite
+    query: SELECT CURRENT_TIMESTAMP, * FROM $PAGES
+    default_timezone: 'America/Los_Angeles'
 ```
 
 SQL language provided by Apache Calcite: https://calcite.apache.org/docs/reference.html
