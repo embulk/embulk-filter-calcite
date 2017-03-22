@@ -14,12 +14,12 @@ import java.util.Calendar;
 import static java.util.Calendar.getInstance;
 import static java.util.TimeZone.getTimeZone;
 
-public class UTCTimestampColumnGetter
+public class FilterTimestampColumnGetter
         extends TimestampColumnGetter
 {
     private static final ThreadLocal<Calendar> calendar = new ThreadLocal<>();
 
-    public UTCTimestampColumnGetter(PageBuilder to, Type toType, TimestampFormatter timestampFormatter, DateTimeZone timeZone)
+    public FilterTimestampColumnGetter(PageBuilder to, Type toType, TimestampFormatter timestampFormatter, DateTimeZone timeZone)
     {
         super(to, toType, timestampFormatter);
         calendar.set(getInstance(getTimeZone(timeZone.getID()))); // set TLS here
