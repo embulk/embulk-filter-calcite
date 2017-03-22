@@ -5,6 +5,7 @@ import org.embulk.spi.PageBuilder;
 import org.embulk.spi.time.Timestamp;
 import org.embulk.spi.time.TimestampFormatter;
 import org.embulk.spi.type.Type;
+import org.joda.time.DateTimeZone;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -16,17 +17,12 @@ import static java.util.TimeZone.getTimeZone;
 public class UTCTimestampColumnGetter
         extends TimestampColumnGetter
 {
-    private static ThreadLocal<Calendar> calendar = new ThreadLocal<Calendar>() {
-        @Override
-        protected Calendar initialValue()
-        {
-            return getInstance(getTimeZone("UTC"));
-        }
-    };
+    private static final ThreadLocal<Calendar> calendar = new ThreadLocal<>();
 
-    public UTCTimestampColumnGetter(PageBuilder to, Type toType, TimestampFormatter timestampFormatter)
+    public UTCTimestampColumnGetter(PageBuilder to, Type toType, TimestampFormatter timestampFormatter, DateTimeZone timeZone)
     {
         super(to, toType, timestampFormatter);
+        calendar.set(getInstance(getTimeZone(timeZone.getID()))); // set TLS here
     }
 
     @Override

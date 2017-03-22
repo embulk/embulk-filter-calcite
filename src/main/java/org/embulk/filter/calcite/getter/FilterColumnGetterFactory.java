@@ -28,7 +28,7 @@ public class FilterColumnGetterFactory
         String valueType = option.getValueType();
         Type toType = getToType(option);
         if (valueType.equals("coalesce") && sqlTypeToValueType(column, column.getSqlType()).equals("timestamp")) {
-            return new UTCTimestampColumnGetter(to, toType, newTimestampFormatter(option, "%Y-%m-%d"));
+            return new UTCTimestampColumnGetter(to, toType, newTimestampFormatter(option, "%Y-%m-%d"), option.getTimeZone().or(defaultTimeZone));
         }
         else {
             return super.newColumnGetter(con, task, column, option);
