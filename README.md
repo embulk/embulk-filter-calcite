@@ -33,8 +33,8 @@ Data types by Apache Calcite: https://calcite.apache.org/docs/reference.html#dat
 
 ## Configuration
 
-- **query**: SQL to run (string)
-- **default_timezone**: Set JDBC connect 'timeZone' param (string)
+- **query**: SQL to run (string, required)
+- **default_timezone**: Configure timezone that is used for JDBC connection properties and Calcite engine. This option is one of [JDBC connect parameters](https://calcite.apache.org/docs/adapter.html#jdbc-connect-string-parameters) provided by Apache Calcite. java.util.TimeZone's [AvailableIDs](http://docs.oracle.com/javase/7/docs/api/java/util/TimeZone.html#getAvailableIDs) can be specified. (string, default: 'UTC')
 
 ## Example
 
