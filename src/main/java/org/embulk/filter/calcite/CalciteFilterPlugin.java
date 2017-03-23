@@ -84,6 +84,7 @@ public class CalciteFilterPlugin
     {
         PluginTask task = config.loadConfig(PluginTask.class);
         Properties props = System.getProperties(); // TODO should be configured as config option
+        setupProperties(task, props);
 
         // Set input schema in PageSchema
         PageSchema.schema = inputSchema;
@@ -107,6 +108,13 @@ public class CalciteFilterPlugin
         }
     }
 
+    private void setupProperties(PluginTask task, Properties props)
+    {
+        // @see https://calcite.apache.org/docs/adapter.html#jdbc-connect-string-parameters
+        props.setProperty("caseSensitive", "false"); // Relax case-sensitive
+        props.setProperty("timeZone", task.getDefaultTimeZone().getID());
+    }
+
     private PageConverter newPageConverter(PluginTask task, Schema inputSchema)
     {
         return new PageConverter(inputSchema, task.getDefaultTimeZone().toTimeZone());
@@ -116,9 +124,6 @@ public class CalciteFilterPlugin
     {
         String jdbcUrl = buildJdbcUrl();
         try {
-            // Relax case-sensitive
-            // @see https://calcite.apache.org/docs/adapter.html#jdbc-connect-string-parameters
-            props.setProperty("caseSensitive", "false");
             return new Driver().connect(jdbcUrl, props);
         }
         catch (SQLException e) {
@@ -240,6 +245,7 @@ public class CalciteFilterPlugin
         ColumnGetterFactory factory = newColumnGetterFactory(task, Optional.of(pageBuilder));
         List<ColumnGetter> getters = newColumnGetters(factory, task.getQuerySchema());
         Properties props = System.getProperties(); // TODO should be configured as config option
+        setupProperties(task, props);
         return new FilterPageOutput(outputSchema, task.getQuery(), pageBuilder, pageConverter, getters, props);
     }
 

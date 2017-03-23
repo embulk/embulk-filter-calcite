@@ -1,2 +1,3 @@
 type: calcite
 query: 'SELECT id, id + 2, (id + 1) * id FROM $PAGES'
+default_timezone: 'UTC'

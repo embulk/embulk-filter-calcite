@@ -3,8 +3,8 @@ package org.embulk.filter.calcite.getter;
 import org.embulk.input.jdbc.getter.TimestampColumnGetter;
 import org.embulk.spi.PageBuilder;
 import org.embulk.spi.time.Timestamp;
-import org.embulk.spi.time.TimestampFormatter;
 import org.embulk.spi.type.Type;
+import org.joda.time.DateTimeZone;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -13,20 +13,15 @@ import java.util.Calendar;
 import static java.util.Calendar.getInstance;
 import static java.util.TimeZone.getTimeZone;
 
-public class UTCTimestampColumnGetter
+public class FilterTimestampColumnGetter
         extends TimestampColumnGetter
 {
-    private static ThreadLocal<Calendar> calendar = new ThreadLocal<Calendar>() {
-        @Override
-        protected Calendar initialValue()
-        {
-            return getInstance(getTimeZone("UTC"));
-        }
-    };
+    private static final ThreadLocal<Calendar> calendar = new ThreadLocal<>();
 
-    public UTCTimestampColumnGetter(PageBuilder to, Type toType, TimestampFormatter timestampFormatter)
+    public FilterTimestampColumnGetter(PageBuilder to, Type toType, DateTimeZone timeZone)
     {
-        super(to, toType, timestampFormatter);
+        super(to, toType, null);
+        calendar.set(getInstance(getTimeZone(timeZone.getID()))); // set TLS here
     }
 
     @Override
