@@ -7,50 +7,49 @@ import org.embulk.spi.PageReader;
 import org.embulk.spi.Schema;
 
 public class PageEnumerator
-        implements Enumerator<Object[]>
-{
-    private final Schema schema;
-    private final PageConverter pageConverter;
-    private final PageReader pageReader;
+    implements Enumerator<Object[]> {
 
-    public PageEnumerator(Schema schema, PageConverter pageConverter)
-    {
-        this.schema = schema;
-        this.pageReader = new PageReader(schema);
-        this.pageConverter = pageConverter;
-    }
+  private final Schema schema;
+  private final PageConverter pageConverter;
+  private final PageReader pageReader;
 
-    public void setPage(Page page)
-    {
-        this.pageReader.setPage(page);
-        this.pageConverter.setPageReader(pageReader);
-    }
+  /**
+   * Creates an enumerator to read {@code Page} objects
+   * @param schema  a {@code Schema} that is used for reading {@code Page} objects.
+   * @param pageConverter  a converter to translate values from Embulk types to Calcite types.
+   */
+  public PageEnumerator(Schema schema, PageConverter pageConverter) {
+    this.schema = schema;
+    this.pageReader = new PageReader(schema);
+    this.pageConverter = pageConverter;
+  }
 
-    @Override
-    public Object[] current()
-    {
-        // this is called from org.apache.calcite.linq4j.EnumerableDefaults
-        schema.visitColumns(pageConverter);
-        return pageConverter.getRow();
-    }
+  public void setPage(Page page) {
+    this.pageReader.setPage(page);
+    this.pageConverter.setPageReader(pageReader);
+  }
 
-    @Override
-    public boolean moveNext()
-    {
-        return pageReader.nextRecord();
-    }
+  @Override
+  public Object[] current() {
+    // this is called from org.apache.calcite.linq4j.EnumerableDefaults
+    schema.visitColumns(pageConverter);
+    return pageConverter.getRow();
+  }
 
-    @Override
-    public void reset()
-    {
-        throw new UnsupportedOperationException();
-    }
+  @Override
+  public boolean moveNext() {
+    return pageReader.nextRecord();
+  }
 
-    @Override
-    public void close()
-    {
-        if (pageReader != null) {
-            pageReader.close();
-        }
+  @Override
+  public void reset() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public void close() {
+    if (pageReader != null) {
+      pageReader.close();
     }
+  }
 }
