@@ -1,6 +1,7 @@
 package org.embulk.filter.calcite.adapter.page;
 
 import java.util.Map;
+
 import org.apache.calcite.schema.SchemaFactory;
 import org.apache.calcite.schema.SchemaPlus;
 
@@ -10,16 +11,16 @@ import org.apache.calcite.schema.SchemaPlus;
  * @see https://github.com/apache/calcite/blob/master/example/csv/src/main/java/org/apache/calcite/adapter/csv/CsvSchemaFactory.java
  */
 public class PageSchemaFactory
-    implements SchemaFactory {
+        implements SchemaFactory {
 
-  public static final PageSchemaFactory INSTANCE = new PageSchemaFactory();
+    public static final PageSchemaFactory INSTANCE = new PageSchemaFactory();
 
-  private PageSchemaFactory() {
-  }
+    private PageSchemaFactory() {
+    }
 
-  @Override
-  public org.apache.calcite.schema.Schema create(SchemaPlus parentSchema, String name,
-      Map<String, Object> operand) {
-    return new PageSchema();
-  }
+    @Override
+    public org.apache.calcite.schema.Schema create(SchemaPlus parentSchema, String name,
+                                                   Map<String, Object> operand) {
+        return new PageSchema();
+    }
 }
