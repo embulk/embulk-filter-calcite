@@ -41,15 +41,18 @@ task classpath(type: Copy, dependsOn: ["jar"]) {
 }
 clean { delete "classpath" }
 
+def checkstyleConfigDir = new File(rootDir, "/config/checkstyle")
 checkstyle {
-    configFile = file("${project.rootDir}/config/checkstyle/google_checks.xml")
-    toolVersion = '7.7'
+    configFile = new File(checkstyleConfigDir, "checkstyle.xml")
+    configProperties.checkstyleConfigDir = checkstyleConfigDir
+    toolVersion = '7.6.1'
     ignoreFailures = true
 }
 task checkstyle(type: Checkstyle) {
     classpath = sourceSets.main.output + sourceSets.test.output
     source = sourceSets.main.allJava + sourceSets.test.allJava
 }
+check.dependsOn('checkstyle')
 
 tasks.withType(FindBugs) {
     reports {
