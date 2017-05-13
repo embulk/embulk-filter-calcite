@@ -82,11 +82,17 @@ public class CalciteFilterPlugin
 
     private void setupProperties(PluginTask task, Properties props) {
         // @see https://calcite.apache.org/docs/adapter.html#jdbc-connect-string-parameters
+        final ToStringMap options = task.getOptions();
+        if (!options.containsKey("caseSensitive")) {
+            log.warn("JDBC parameter 'caseSensitive' is implicitly set to false as default in");
+            log.warn("embulk-filter-calcite 0.1 but, it's scheduled to change default with true");
+            log.warn("in 0.2. Please use 'options' option to set 'caseSensitive' to false.");
+        }
         props.setProperty("caseSensitive", "false"); // Relax case-sensitive
         props.setProperty("timeZone", task.getDefaultTimeZone().getID());
 
         // overwrites props with 'options' option
-        props.putAll(task.getOptions());
+        props.putAll(options);
     }
 
     private PageConverter newPageConverter(PluginTask task, Schema inputSchema) {
