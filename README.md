@@ -45,6 +45,13 @@ filters:
     query: SELECT * FROM $PAGES WHERE id IN (1, 2)
 ```
 
+The following is an example by LIKE operator and enables removing rows not matched at a specified pattern from Pages.
+```yaml
+filters:
+  - type: calcite
+    query: SELECT * FROM $PAGES WHERE message LIKE '%EMBULK%'
+```
+
 This enables adding new column and inserting the value combined 2 string column values.
 ```yaml
 filters:
