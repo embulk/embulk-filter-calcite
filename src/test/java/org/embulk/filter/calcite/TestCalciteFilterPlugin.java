@@ -71,6 +71,22 @@ public class TestCalciteFilterPlugin {
                 "test_simple_expected.csv");
     }
 
+    /**
+     * This method was added to confirm #13 is fixed or not.
+     *
+     * @throws Exception
+     *
+     * @see https://github.com/muga/embulk-filter-calcite/issues/13
+     * @see https://issues.apache.org/jira/browse/CALCITE-1673
+     */
+    @Test
+    public void testTimestampConversion() throws Exception {
+        assertRecordsByResource(embulk, "test_timestamp_conv_in.yml",
+                "test_timestamp_conv_filter.yml",
+                "test_timestamp_conv_source.csv",
+                "test_timestamp_conv_expected.csv");
+    }
+
     @Test
     public void testIntOperators() throws Exception {
         assertRecordsByResource(embulk,

@@ -1,0 +1,3 @@
+type: calcite
+query: 'SELECT "time" FROM $PAGES'
+default_timezone: 'UTC'
