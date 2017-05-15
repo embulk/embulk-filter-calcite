@@ -61,9 +61,13 @@ public class CalciteFilterPlugin implements FilterPlugin {
 
         // Set page converter as TLS variable in PageTable
         PageTable.pageConverter.set(newPageConverter(task, inputSchema));
+
+        final String jdbcUrl = buildJdbcUrl();
+        log.info(String.format(Locale.ENGLISH, "Generated Jdbc URL: %s", jdbcUrl));
+
         try {
             JdbcSchema querySchema;
-            try (Connection conn = newConnection(props)) { // SQLException thrown by conn.close()
+            try (Connection conn = newConnection(jdbcUrl, props)) { // SQLException by conn.close()
                 querySchema = getQuerySchema(task, conn);
                 task.setQuerySchema(querySchema);
             } catch (SQLException e) {
@@ -86,8 +90,7 @@ public class CalciteFilterPlugin implements FilterPlugin {
         return new PageConverter(inputSchema, task.getDefaultTimeZone().toTimeZone());
     }
 
-    private Connection newConnection(Properties props) {
-        String jdbcUrl = buildJdbcUrl();
+    private Connection newConnection(String jdbcUrl, Properties props) {
         try {
             return new Driver().connect(jdbcUrl, props);
         } catch (SQLException e) {
@@ -113,9 +116,7 @@ public class CalciteFilterPlugin implements FilterPlugin {
         String jsonModel = Exec.getModelManager().writeObject(map.build());
 
         // build Jdbc URL
-        String jdbcUrl = String.format(Locale.ENGLISH, "jdbc:calcite:model=inline:%s", jsonModel);
-        log.info(String.format(Locale.ENGLISH, "Generated Jdbc URL: %s", jdbcUrl));
-        return jdbcUrl;
+        return String.format(Locale.ENGLISH, "jdbc:calcite:model=inline:%s", jsonModel);
     }
 
     private JdbcSchema getQuerySchema(PluginTask task, Connection conn)
@@ -262,7 +263,7 @@ public class CalciteFilterPlugin implements FilterPlugin {
             // Set page as TLS variable in PageTable
             PageTable.page.set(page);
 
-            try (Connection conn = newConnection(props);
+            try (Connection conn = newConnection(buildJdbcUrl(), props);
                  Statement stat = conn.createStatement();
                  ResultSet result = executeQuery(stat, query)) {
 
