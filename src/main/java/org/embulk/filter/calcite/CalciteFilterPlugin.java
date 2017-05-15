@@ -5,6 +5,15 @@ import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.Inject;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Properties;
 import org.apache.calcite.jdbc.Driver;
 import org.embulk.config.Config;
 import org.embulk.config.ConfigDefault;
@@ -23,6 +32,7 @@ import org.embulk.input.jdbc.JdbcSchema;
 import org.embulk.input.jdbc.getter.ColumnGetter;
 import org.embulk.input.jdbc.getter.ColumnGetterFactory;
 import org.embulk.spi.BufferAllocator;
+import org.embulk.spi.Exec;
 import org.embulk.spi.FilterPlugin;
 import org.embulk.spi.Page;
 import org.embulk.spi.PageBuilder;
@@ -31,57 +41,17 @@ import org.embulk.spi.Schema;
 import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-
-import static java.lang.String.format;
-import static java.lang.Thread.currentThread;
-import static java.util.Locale.ENGLISH;
-import static org.embulk.spi.Exec.getLogger;
-import static org.embulk.spi.Exec.getModelManager;
-import static org.embulk.spi.Exec.newConfigSource;
-
-public class CalciteFilterPlugin
-        implements FilterPlugin
-{
-    public interface PluginTask
-            extends Task
-    {
-        @Config("query")
-        public String getQuery();
-
-        @Config("default_timezone")
-        @ConfigDefault("\"UTC\"")
-        public DateTimeZone getDefaultTimeZone();
-
-        public JdbcSchema getQuerySchema();
-        public void setQuerySchema(JdbcSchema querySchema);
-
-        // TODO support jdbc Url properties
-        // TODO support column_options: option
-        // TODO support options: option
-
-        @ConfigInject
-        public BufferAllocator getBufferAllocator();
-    }
+public class CalciteFilterPlugin implements FilterPlugin {
 
     private final Logger log;
 
     @Inject
-    public CalciteFilterPlugin()
-    {
-        this.log = getLogger(getClass());
+    public CalciteFilterPlugin() {
+        this.log = Exec.getLogger(getClass());
     }
 
     @Override
-    public void transaction(ConfigSource config, Schema inputSchema, FilterPlugin.Control control)
-    {
+    public void transaction(ConfigSource config, Schema inputSchema, FilterPlugin.Control control) {
         PluginTask task = config.loadConfig(PluginTask.class);
         Properties props = System.getProperties(); // TODO should be configured as config option
         setupProperties(task, props);
@@ -96,44 +66,38 @@ public class CalciteFilterPlugin
             try (Connection conn = newConnection(props)) { // SQLException thrown by conn.close()
                 querySchema = getQuerySchema(task, conn);
                 task.setQuerySchema(querySchema);
-            }
-            catch (SQLException e) {
+            } catch (SQLException e) {
                 throw Throwables.propagate(e);
             }
 
             control.run(task.dump(), buildOutputSchema(task, querySchema));
-        }
-        finally {
+        } finally {
             PageTable.pageConverter.remove();
         }
     }
 
-    private void setupProperties(PluginTask task, Properties props)
-    {
+    private void setupProperties(PluginTask task, Properties props) {
         // @see https://calcite.apache.org/docs/adapter.html#jdbc-connect-string-parameters
         props.setProperty("caseSensitive", "false"); // Relax case-sensitive
         props.setProperty("timeZone", task.getDefaultTimeZone().getID());
     }
 
-    private PageConverter newPageConverter(PluginTask task, Schema inputSchema)
-    {
+    private PageConverter newPageConverter(PluginTask task, Schema inputSchema) {
         return new PageConverter(inputSchema, task.getDefaultTimeZone().toTimeZone());
     }
 
-    private Connection newConnection(Properties props)
-    {
+    private Connection newConnection(Properties props) {
         String jdbcUrl = buildJdbcUrl();
         try {
             return new Driver().connect(jdbcUrl, props);
-        }
-        catch (SQLException e) {
-            String message = format(ENGLISH, "Cannot create connections by Jdbc URL: %s", jdbcUrl);
+        } catch (SQLException e) {
+            String message = String.format(Locale.ENGLISH,
+                    "Cannot create connections by Jdbc URL: %s", jdbcUrl);
             throw new IllegalStateException(message, e);
         }
     }
 
-    private String buildJdbcUrl()
-    {
+    private String buildJdbcUrl() {
         // build a json model to apply Page storage adaptor
         // @see https://github.com/apache/calcite/blob/master/example/csv/src/test/resources/model.json
         ImmutableMap.Builder<String, Object> map = ImmutableMap.builder();
@@ -146,42 +110,25 @@ public class CalciteFilterPlugin
                         "factory", PageSchemaFactory.class.getName()
                 )
         ));
-        String jsonModel = getModelManager().writeObject(map.build());
+        String jsonModel = Exec.getModelManager().writeObject(map.build());
 
         // build Jdbc URL
-        String jdbcUrl = format(ENGLISH, "jdbc:calcite:model=inline:%s", jsonModel);
-        log.info(format(ENGLISH, "Generated Jdbc URL: %s", jdbcUrl));
+        String jdbcUrl = String.format(Locale.ENGLISH, "jdbc:calcite:model=inline:%s", jsonModel);
+        log.info(String.format(Locale.ENGLISH, "Generated Jdbc URL: %s", jdbcUrl));
         return jdbcUrl;
     }
 
     private JdbcSchema getQuerySchema(PluginTask task, Connection conn)
-            throws SQLException
-    {
+            throws SQLException {
         try (Statement stat = conn.createStatement(); // SQLException thrown by conn.close()
-                ResultSet result = executeQuery(stat, task.getQuery())) { // SQLException thrown by rs.close()
+             ResultSet result = executeQuery(stat,
+                     task.getQuery())) { // SQLException thrown by rs.close()
             return getQuerySchema(result.getMetaData());
         }
     }
 
-    private ResultSet executeQuery(Statement stat, String query)
-    {
-        // This is a workaround to avoid NPE caused by commons-compiler v2.7.6
-        ClassLoader cl = currentThread().getContextClassLoader();
-        currentThread().setContextClassLoader(getClass().getClassLoader());
-        try {
-            return stat.executeQuery(query);
-        }
-        catch (SQLException e) {
-            throw new ConfigException("Cannot execute a query: " + query, e);
-        }
-        finally {
-            currentThread().setContextClassLoader(cl);
-        }
-    }
-
     private JdbcSchema getQuerySchema(ResultSetMetaData metadata)
-            throws SQLException
-    {
+            throws SQLException {
         ImmutableList.Builder<JdbcColumn> columns = ImmutableList.builder();
         for (int i = 0; i < metadata.getColumnCount(); i++) {
             int index = i + 1; // JDBC column index begins from 1
@@ -195,8 +142,20 @@ public class CalciteFilterPlugin
         return new JdbcSchema(columns.build());
     }
 
-    private Schema buildOutputSchema(PluginTask task, JdbcSchema querySchema)
-    {
+    private ResultSet executeQuery(Statement stat, String query) {
+        // This is a workaround to avoid NPE caused by commons-compiler v2.7.6
+        ClassLoader cl = Thread.currentThread().getContextClassLoader();
+        Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
+        try {
+            return stat.executeQuery(query);
+        } catch (SQLException e) {
+            throw new ConfigException("Cannot execute a query: " + query, e);
+        } finally {
+            Thread.currentThread().setContextClassLoader(cl);
+        }
+    }
+
+    private Schema buildOutputSchema(PluginTask task, JdbcSchema querySchema) {
         ColumnGetterFactory factory = newColumnGetterFactory(task, Optional.<PageBuilder>absent());
         List<ColumnGetter> getters = newColumnGetters(factory, querySchema);
 
@@ -207,18 +166,17 @@ public class CalciteFilterPlugin
         return schema.build();
     }
 
-    private ColumnGetterFactory newColumnGetterFactory(PluginTask task, Optional<PageBuilder> pageBuilder)
-    {
+    private ColumnGetterFactory newColumnGetterFactory(PluginTask task,
+                                                       Optional<PageBuilder> pageBuilder) {
         if (pageBuilder.isPresent()) {
             return new FilterColumnGetterFactory(pageBuilder.get(), task.getDefaultTimeZone());
-        }
-        else {
+        } else {
             return new FilterColumnGetterFactory(null, task.getDefaultTimeZone());
         }
     }
 
-    private List<ColumnGetter> newColumnGetters(ColumnGetterFactory factory, JdbcSchema querySchema)
-    {
+    private List<ColumnGetter> newColumnGetters(ColumnGetterFactory factory,
+                                                JdbcSchema querySchema) {
         ImmutableList.Builder<ColumnGetter> getters = ImmutableList.builder();
         for (JdbcColumn column : querySchema.getColumns()) {
             getters.add(factory.newColumnGetter(null, null, column, newJdbcColumnOption()));
@@ -226,15 +184,14 @@ public class CalciteFilterPlugin
         return getters.build();
     }
 
-    private JdbcColumnOption newJdbcColumnOption()
-    {
+    private JdbcColumnOption newJdbcColumnOption() {
         // TODO need to improve for supporting column_options: option
-        return newConfigSource().loadConfig(JdbcColumnOption.class);
+        return Exec.newConfigSource().loadConfig(JdbcColumnOption.class);
     }
 
     @Override
-    public PageOutput open(TaskSource taskSource, Schema inputSchema, Schema outputSchema, PageOutput output)
-    {
+    public PageOutput open(TaskSource taskSource, Schema inputSchema, Schema outputSchema,
+                           PageOutput output) {
         PluginTask task = taskSource.loadTask(PluginTask.class);
 
         // Set input schema in PageSchema for various types of executor plugins
@@ -246,12 +203,39 @@ public class CalciteFilterPlugin
         List<ColumnGetter> getters = newColumnGetters(factory, task.getQuerySchema());
         Properties props = System.getProperties(); // TODO should be configured as config option
         setupProperties(task, props);
-        return new FilterPageOutput(outputSchema, task.getQuery(), pageBuilder, pageConverter, getters, props);
+        return new FilterPageOutput(outputSchema,
+                task.getQuery(),
+                pageBuilder,
+                pageConverter,
+                getters,
+                props);
+    }
+
+    public interface PluginTask
+            extends Task {
+
+        @Config("query")
+        public String getQuery();
+
+        @Config("default_timezone")
+        @ConfigDefault("\"UTC\"")
+        public DateTimeZone getDefaultTimeZone();
+
+        public JdbcSchema getQuerySchema();
+
+        public void setQuerySchema(JdbcSchema querySchema);
+
+        // TODO support jdbc Url properties
+        // TODO support column_options: option
+        // TODO support options: option
+
+        @ConfigInject
+        public BufferAllocator getBufferAllocator();
     }
 
     private class FilterPageOutput
-            implements PageOutput
-    {
+            implements PageOutput {
+
         private final Schema outputSchema;
         private final String query;
         private final PageBuilder pageBuilder;
@@ -259,9 +243,9 @@ public class CalciteFilterPlugin
         private final List<ColumnGetter> getters;
         private final Properties props;
 
-        private FilterPageOutput(Schema outputSchema, String query, PageBuilder pageBuilder, PageConverter pageConverter,
-                List<ColumnGetter> getters, Properties props)
-        {
+        private FilterPageOutput(Schema outputSchema, String query, PageBuilder pageBuilder,
+                                 PageConverter pageConverter,
+                                 List<ColumnGetter> getters, Properties props) {
             this.outputSchema = outputSchema;
             this.query = query;
             this.pageBuilder = pageBuilder;
@@ -271,8 +255,7 @@ public class CalciteFilterPlugin
         }
 
         @Override
-        public void add(Page page)
-        {
+        public void add(Page page) {
             // Set page converter as TLS variable in PageTable
             PageTable.pageConverter.set(pageConverter);
 
@@ -280,8 +263,8 @@ public class CalciteFilterPlugin
             PageTable.page.set(page);
 
             try (Connection conn = newConnection(props);
-                    Statement stat = conn.createStatement();
-                    ResultSet result = executeQuery(stat, query)) {
+                 Statement stat = conn.createStatement();
+                 ResultSet result = executeQuery(stat, query)) {
 
                 while (result.next()) {
                     for (int i = 0; i < getters.size(); i++) {
@@ -290,25 +273,21 @@ public class CalciteFilterPlugin
                     }
                     pageBuilder.addRecord();
                 }
-            }
-            catch (SQLException e) {
+            } catch (SQLException e) {
                 throw Throwables.propagate(e); // TODO better exception handling? error messages?
-            }
-            finally {
+            } finally {
                 PageTable.pageConverter.remove();
                 PageTable.page.remove();
             }
         }
 
         @Override
-        public void finish()
-        {
+        public void finish() {
             pageBuilder.finish();
         }
 
         @Override
-        public void close()
-        {
+        public void close() {
             pageBuilder.close();
         }
     }
