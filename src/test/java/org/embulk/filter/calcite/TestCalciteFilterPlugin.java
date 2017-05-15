@@ -1,15 +1,12 @@
 package org.embulk.filter.calcite;
 
 import com.google.common.collect.ImmutableList;
-
 import java.io.IOException;
 import java.nio.file.Path;
-
 import org.embulk.config.ConfigSource;
 import org.embulk.spi.FilterPlugin;
 import org.embulk.test.EmbulkTests;
 import org.embulk.test.TestingEmbulk;
-
 import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Before;

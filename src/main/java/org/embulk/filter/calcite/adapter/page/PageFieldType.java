@@ -2,7 +2,6 @@ package org.embulk.filter.calcite.adapter.page;
 
 import java.util.HashMap;
 import java.util.Map;
-
 import org.apache.calcite.adapter.java.JavaTypeFactory;
 import org.apache.calcite.rel.type.RelDataType;
 

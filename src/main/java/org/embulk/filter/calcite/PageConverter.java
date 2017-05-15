@@ -2,7 +2,6 @@ package org.embulk.filter.calcite;
 
 import java.math.BigDecimal;
 import java.util.TimeZone;
-
 import org.embulk.spi.Column;
 import org.embulk.spi.ColumnVisitor;
 import org.embulk.spi.PageReader;
@@ -12,8 +11,7 @@ import org.embulk.spi.Schema;
  * This class converts Embulk's Page values into Calcite's row types. It refers to
  * org.apache.calcite.adapter.csv.CsvEnumerator.
  */
-public class PageConverter
-        implements ColumnVisitor {
+public class PageConverter implements ColumnVisitor {
 
     private final TimeZone defaultTimeZone;
     private final Object[] row;

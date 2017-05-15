@@ -5,7 +5,6 @@ import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.Inject;
-
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -15,7 +14,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
-
 import org.apache.calcite.jdbc.Driver;
 import org.embulk.config.Config;
 import org.embulk.config.ConfigDefault;
@@ -43,8 +41,7 @@ import org.embulk.spi.Schema;
 import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 
-public class CalciteFilterPlugin
-        implements FilterPlugin {
+public class CalciteFilterPlugin implements FilterPlugin {
 
     private final Logger log;
 

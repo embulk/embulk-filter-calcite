@@ -2,7 +2,6 @@ package org.embulk.filter.calcite.adapter.page;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import org.apache.calcite.DataContext;
 import org.apache.calcite.adapter.java.JavaTypeFactory;
 import org.apache.calcite.linq4j.AbstractEnumerable;
@@ -22,9 +21,7 @@ import org.embulk.spi.Schema;
 /**
  * Base class for table that reads Pages.
  */
-public class PageTable
-        extends AbstractTable
-        implements ScannableTable {
+public class PageTable extends AbstractTable implements ScannableTable {
 
     public static ThreadLocal<PageConverter> pageConverter = new ThreadLocal<>();
     public static ThreadLocal<Page> page = new ThreadLocal<>();

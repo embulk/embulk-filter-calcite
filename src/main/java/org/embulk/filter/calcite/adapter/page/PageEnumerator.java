@@ -6,8 +6,7 @@ import org.embulk.spi.Page;
 import org.embulk.spi.PageReader;
 import org.embulk.spi.Schema;
 
-public class PageEnumerator
-        implements Enumerator<Object[]> {
+public class PageEnumerator implements Enumerator<Object[]> {
 
     private final Schema schema;
     private final PageConverter pageConverter;
