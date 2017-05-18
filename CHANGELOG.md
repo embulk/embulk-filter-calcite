@@ -1,3 +1,11 @@
+## 0.1.3 - 2017-05-18
+
+* [maintenance] Use PreparedStatement to improve the performance. [#23]
+
+* [maintenance] Deduplicate redundant logging to fix #24. [#25]
+
+* [maintenance] Add settings.gradle. [#26]
+
 ## 0.1.2 - 2017-05-15
 
 * [new feature] Add warning to change default of case sensitive. [#18]
