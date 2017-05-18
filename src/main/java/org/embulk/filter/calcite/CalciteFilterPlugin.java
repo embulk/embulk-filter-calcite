@@ -6,6 +6,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.Inject;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -107,6 +108,14 @@ public class CalciteFilterPlugin implements FilterPlugin {
             String message = String.format(Locale.ENGLISH,
                     "Cannot create connections by Jdbc URL: %s", jdbcUrl);
             throw new IllegalStateException(message, e);
+        }
+    }
+
+    private PreparedStatement createPreparedStatement(Connection conn, String query) {
+        try {
+            return conn.prepareStatement(query);
+        } catch (SQLException e) {
+            throw Throwables.propagate(e);
         }
     }
 
@@ -214,12 +223,13 @@ public class CalciteFilterPlugin implements FilterPlugin {
         List<ColumnGetter> getters = newColumnGetters(factory, task.getQuerySchema());
         Properties props = System.getProperties(); // TODO should be configured as config option
         setupProperties(task, props);
+        final Connection conn = newConnection(buildJdbcUrl(), props);
+        final PreparedStatement preparedStatement = createPreparedStatement(conn, task.getQuery());
         return new FilterPageOutput(outputSchema,
-                task.getQuery(),
                 pageBuilder,
                 pageConverter,
                 getters,
-                props);
+                preparedStatement); // Transfer ownership of preparedStatement to FilterPageOutput
     }
 
     public interface PluginTask
@@ -251,21 +261,21 @@ public class CalciteFilterPlugin implements FilterPlugin {
             implements PageOutput {
 
         private final Schema outputSchema;
-        private final String query;
         private final PageBuilder pageBuilder;
         private final PageConverter pageConverter;
         private final List<ColumnGetter> getters;
-        private final Properties props;
+        private final PreparedStatement preparedStatement;
 
-        private FilterPageOutput(Schema outputSchema, String query, PageBuilder pageBuilder,
+        private FilterPageOutput(Schema outputSchema,
+                                 PageBuilder pageBuilder,
                                  PageConverter pageConverter,
-                                 List<ColumnGetter> getters, Properties props) {
+                                 List<ColumnGetter> getters,
+                                 PreparedStatement preparedStatement) {
             this.outputSchema = outputSchema;
-            this.query = query;
             this.pageBuilder = pageBuilder;
             this.pageConverter = pageConverter;
             this.getters = getters;
-            this.props = props;
+            this.preparedStatement = preparedStatement;
         }
 
         @Override
@@ -276,10 +286,8 @@ public class CalciteFilterPlugin implements FilterPlugin {
             // Set page as TLS variable in PageTable
             PageTable.page.set(page);
 
-            try (Connection conn = newConnection(buildJdbcUrl(), props);
-                 Statement stat = conn.createStatement();
-                 ResultSet result = executeQuery(stat, query)) {
 
+            try (ResultSet result = preparedStatement.executeQuery()) {
                 while (result.next()) {
                     for (int i = 0; i < getters.size(); i++) {
                         int index = i + 1; // JDBC column index begins from 1
@@ -303,6 +311,11 @@ public class CalciteFilterPlugin implements FilterPlugin {
         @Override
         public void close() {
             pageBuilder.close();
+            try {
+                preparedStatement.close();
+            } catch (SQLException e) {
+                throw Throwables.propagate(e);
+            }
         }
     }
 }
