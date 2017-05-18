@@ -56,7 +56,7 @@ public class CalciteFilterPlugin implements FilterPlugin {
     public void transaction(ConfigSource config, Schema inputSchema, FilterPlugin.Control control) {
         PluginTask task = config.loadConfig(PluginTask.class);
         Properties props = System.getProperties(); // TODO should be configured as config option
-        setupProperties(task, props);
+        setupPropertiesFromTransaction(task, props);
 
         // Set input schema in PageSchema
         PageSchema.schema = inputSchema;
@@ -82,14 +82,19 @@ public class CalciteFilterPlugin implements FilterPlugin {
         }
     }
 
-    private void setupProperties(PluginTask task, Properties props) {
-        // @see https://calcite.apache.org/docs/adapter.html#jdbc-connect-string-parameters
+    private void setupPropertiesFromTransaction(PluginTask task, Properties props) {
         final ToStringMap options = task.getOptions();
         if (!options.containsKey("caseSensitive")) {
             log.warn("JDBC parameter 'caseSensitive' is implicitly set to false as default in");
             log.warn("embulk-filter-calcite 0.1 but, it's scheduled to change default with true");
             log.warn("in 0.2. Please use 'options' option to set 'caseSensitive' to false.");
         }
+        setupProperties(task, props);
+    }
+
+    private void setupProperties(PluginTask task, Properties props) {
+        // @see https://calcite.apache.org/docs/adapter.html#jdbc-connect-string-parameters
+        final ToStringMap options = task.getOptions();
         props.setProperty("caseSensitive", "false"); // Relax case-sensitive
         props.setProperty("timeZone", task.getDefaultTimeZone().getID());
 
