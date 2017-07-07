@@ -23,15 +23,15 @@ sourceCompatibility = 1.7
 targetCompatibility = 1.7
 
 dependencies {
-    compile  "org.embulk:embulk-core:0.8.17"
-    provided "org.embulk:embulk-core:0.8.17"
+    compile  "org.embulk:embulk-core:0.8.26"
+    provided "org.embulk:embulk-core:0.8.26"
     compile  "org.embulk.input.jdbc:embulk-input-jdbc:0.8.2"
     compile  "org.apache.calcite:calcite-core:1.12.0"
 
     testCompile "junit:junit:4.+"
-    testCompile "org.embulk:embulk-core:0.8.17:tests"
-    testCompile "org.embulk:embulk-standards:0.8.17"
-    testCompile "org.embulk:embulk-test:0.8.17"
+    testCompile "org.embulk:embulk-core:0.8.26:tests"
+    testCompile "org.embulk:embulk-standards:0.8.26"
+    testCompile "org.embulk:embulk-test:0.8.26"
 }
 
 task classpath(type: Copy, dependsOn: ["jar"]) {
