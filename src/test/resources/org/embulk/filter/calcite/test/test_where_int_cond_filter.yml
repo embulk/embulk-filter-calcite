@@ -1,3 +1,5 @@
 type: calcite
 query: 'SELECT * FROM $PAGES WHERE MOD(id, 2) = 0'
 default_timezone: 'UTC'
+options:
+  caseSensitive: false
