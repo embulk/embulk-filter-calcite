@@ -1,5 +1,7 @@
 # Apache Calcite filter plugin for Embulk
 
+[![Build Status](https://travis-ci.org/muga/embulk-filter-calcite.svg?branch=master)](https://travis-ci.org/muga/embulk-filter-calcite)
+
 ## Overview
 
 * **Plugin type**: filter
