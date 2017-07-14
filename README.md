@@ -1,6 +1,7 @@
 # Apache Calcite filter plugin for Embulk
 
 [![Build Status](https://travis-ci.org/muga/embulk-filter-calcite.svg?branch=master)](https://travis-ci.org/muga/embulk-filter-calcite)
+[![Coverage Status](https://coveralls.io/repos/github/muga/embulk-filter-calcite/badge.svg?branch=master)](https://coveralls.io/github/muga/embulk-filter-calcite?branch=master)
 
 ## Overview
 

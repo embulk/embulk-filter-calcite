@@ -5,6 +5,7 @@ plugins {
     id "checkstyle"
     id "findbugs"
     id "jacoco"
+    id "com.github.kt3k.coveralls" version "2.4.0"
 }
 import com.github.jrubygradle.JRubyExec
 
@@ -62,6 +63,13 @@ tasks.withType(FindBugs) {
 }
 findbugs {
     ignoreFailures = true
+}
+
+jacocoTestReport {
+    reports {
+        xml.enabled = true // coveralls plugin depends on xml format report
+        html.enabled = true
+    }
 }
 
 task gem(type: JRubyExec, dependsOn: ["gemspec", "classpath"]) {
