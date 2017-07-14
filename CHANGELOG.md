@@ -1,3 +1,19 @@
+## 0.2.0 - 2017-07-14
+
+* [maintenance] Add 'options' config option in README.md. [#29]
+
+* [maintenance] Not set case sensitive implicitly. [#30]
+
+* [maintenance] Upgrade Embulk 0.8.26. [#31]
+
+* [maintenance] Upgrade apache calciste 1.13.0. [#32]
+
+* [maintenance] Show build status from Travis CI on README.md. [#33]
+
+* [maintenance] Show test coverage from Coveralls on README.md. [#34]
+
+* [maintenance] Show Code Climate's score. [#35]
+
 ## 0.1.3 - 2017-05-18
 
 * [maintenance] Use PreparedStatement to improve the performance. [#23]
