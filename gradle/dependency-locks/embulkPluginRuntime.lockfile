@@ -1,0 +1,20 @@
+# This is a Gradle generated file for dependency locking.
+# Manual edits can break the build and are not advised.
+# This file is expected to be part of source control.
+com.google.code.findbugs:jsr305:3.0.1
+com.google.protobuf:protobuf-java:3.1.0
+commons-codec:commons-codec:1.9
+commons-dbcp:commons-dbcp:1.4
+commons-lang:commons-lang:2.4
+commons-logging:commons-logging:1.2
+commons-pool:commons-pool:1.5.4
+net.hydromatic:aggdesigner-algorithm:6.0
+org.apache.calcite.avatica:avatica-core:1.10.0
+org.apache.calcite.avatica:avatica-metrics:1.10.0
+org.apache.calcite:calcite-core:1.13.0
+org.apache.calcite:calcite-linq4j:1.13.0
+org.apache.httpcomponents:httpclient:4.5.2
+org.apache.httpcomponents:httpcore:4.4.4
+org.codehaus.janino:commons-compiler:2.7.6
+org.codehaus.janino:janino:2.7.6
+org.embulk.input.jdbc:embulk-input-jdbc:0.8.2
