@@ -1,5 +1,5 @@
 language: java
-jdk: oraclejdk8 # Use oraclejdk8 because checkstyle jar is compiled by jdk8 but, released plugin is still built by oraclejdk7.
+jdk: openjdk8
 script:
 - ./gradlew --info check
 after_success:
