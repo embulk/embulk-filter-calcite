@@ -1,3 +1,11 @@
+## 0.3.0 - 2020-02-04
+
+* [maintenance] Build with "org.embulk.embulk-plugins" Gradle plugin. [#38]
+
+* [maintenance] Upgrade Gradle 5.5.1. [#38]
+
+* [maintenance] Use OpenJDK8 on Travis. [#38]
+
 ## 0.2.0 - 2017-07-14
 
 * [maintenance] Add 'options' config option in README.md. [#29]
