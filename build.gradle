@@ -49,9 +49,9 @@ dependencies {
 }
 
 embulkPlugin {
-    mainClass = "org.embulk.filter.add_time.AddTimeFilterPlugin"
+    mainClass = "org.embulk.filter.calcite.CalciteFilterPlugin"
     category = "filter"
-    type = "add_time"
+    type = "calcite"
 }
 
 publishing {
