@@ -17,7 +17,6 @@ import org.apache.calcite.jdbc.Driver;
 import org.embulk.config.Config;
 import org.embulk.config.ConfigDefault;
 import org.embulk.config.ConfigException;
-import org.embulk.config.ConfigInject;
 import org.embulk.config.ConfigSource;
 import org.embulk.config.Task;
 import org.embulk.config.TaskSource;
@@ -210,7 +209,7 @@ public class CalciteFilterPlugin implements FilterPlugin {
         // Set input schema in PageSchema for various types of executor plugins
         PageSchema.schema = inputSchema;
 
-        PageBuilder pageBuilder = new PageBuilder(task.getBufferAllocator(), outputSchema, output);
+        PageBuilder pageBuilder = new PageBuilder(Exec.getBufferAllocator(), outputSchema, output);
         PageConverter pageConverter = newPageConverter(task, inputSchema);
         ColumnGetterFactory factory = newColumnGetterFactory(task, Optional.of(pageBuilder));
         List<ColumnGetter> getters = newColumnGetters(factory, task.getQuerySchema());
@@ -245,9 +244,6 @@ public class CalciteFilterPlugin implements FilterPlugin {
         @Config("options")
         @ConfigDefault("{}")
         public ToStringMap getOptions();
-
-        @ConfigInject
-        public BufferAllocator getBufferAllocator();
     }
 
     private class FilterPageOutput
