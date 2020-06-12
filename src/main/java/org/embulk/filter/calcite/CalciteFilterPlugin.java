@@ -1,6 +1,5 @@
 package org.embulk.filter.calcite;
 
-import com.google.common.base.Optional;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -14,6 +13,7 @@ import java.sql.Statement;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 import org.apache.calcite.jdbc.Driver;
 import org.embulk.config.Config;
@@ -175,7 +175,7 @@ public class CalciteFilterPlugin implements FilterPlugin {
     }
 
     private Schema buildOutputSchema(PluginTask task, JdbcSchema querySchema) {
-        ColumnGetterFactory factory = newColumnGetterFactory(task, Optional.<PageBuilder>absent());
+        ColumnGetterFactory factory = newColumnGetterFactory(task, Optional.<PageBuilder>empty());
         List<ColumnGetter> getters = newColumnGetters(factory, querySchema);
 
         Schema.Builder schema = Schema.builder();
