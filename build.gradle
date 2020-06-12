@@ -3,7 +3,6 @@ plugins {
     id "maven-publish"
     id "org.embulk.embulk-plugins" version "0.2.6"
     id "checkstyle"
-    id "findbugs"
     id "jacoco"
     id "com.github.kt3k.coveralls" version "2.4.0"
 }
@@ -89,16 +88,6 @@ task checkstyle(type: Checkstyle) {
     source = sourceSets.main.allJava + sourceSets.test.allJava
 }
 check.dependsOn('checkstyle')
-
-tasks.withType(FindBugs) {
-    reports {
-        xml.enabled = false
-        html.enabled = true
-    }
-}
-findbugs {
-    ignoreFailures = true
-}
 
 jacocoTestReport {
     reports {
