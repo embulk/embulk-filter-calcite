@@ -1,5 +1,7 @@
 package org.embulk.filter.calcite;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import java.sql.Connection;
@@ -124,7 +126,12 @@ public class CalciteFilterPlugin implements FilterPlugin {
                         "factory", PageSchemaFactory.class.getName()
                 )
         ));
-        String jsonModel = Exec.getModelManager().writeObject(map.build());
+        final String jsonModel;
+        try {
+            jsonModel = (new ObjectMapper()).writeValueAsString(map.build());
+        } catch (final JsonProcessingException ex) {
+            throw new RuntimeException("Unexpected fatal error.", ex);
+        }
 
         // build Jdbc URL
         return String.format(Locale.ENGLISH, "jdbc:calcite:model=inline:%s", jsonModel);
