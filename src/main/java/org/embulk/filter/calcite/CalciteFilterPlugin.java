@@ -1,6 +1,5 @@
 package org.embulk.filter.calcite;
 
-import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.Inject;
@@ -73,7 +72,7 @@ public class CalciteFilterPlugin implements FilterPlugin {
                 querySchema = getQuerySchema(task, conn);
                 task.setQuerySchema(querySchema);
             } catch (SQLException e) {
-                throw Throwables.propagate(e);
+                throw new RuntimeException(e);
             }
 
             control.run(task.dump(), buildOutputSchema(task, querySchema));
@@ -114,7 +113,7 @@ public class CalciteFilterPlugin implements FilterPlugin {
         try {
             return conn.prepareStatement(query);
         } catch (SQLException e) {
-            throw Throwables.propagate(e);
+            throw new RuntimeException(e);
         }
     }
 
@@ -295,7 +294,7 @@ public class CalciteFilterPlugin implements FilterPlugin {
                     pageBuilder.addRecord();
                 }
             } catch (SQLException e) {
-                throw Throwables.propagate(e); // TODO better exception handling? error messages?
+                throw new RuntimeException(e); // TODO better exception handling? error messages?
             } finally {
                 PageTable.pageConverter.remove();
                 PageTable.page.remove();
@@ -313,7 +312,7 @@ public class CalciteFilterPlugin implements FilterPlugin {
             try {
                 preparedStatement.close();
             } catch (SQLException e) {
-                throw Throwables.propagate(e);
+                throw new RuntimeException(e);
             }
         }
     }
