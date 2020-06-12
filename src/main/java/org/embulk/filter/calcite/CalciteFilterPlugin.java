@@ -2,7 +2,6 @@ package org.embulk.filter.calcite;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.inject.Inject;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -41,15 +40,11 @@ import org.embulk.spi.Schema;
 import org.embulk.spi.unit.ToStringMap;
 import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class CalciteFilterPlugin implements FilterPlugin {
 
-    private final Logger log;
-
-    @Inject
-    public CalciteFilterPlugin() {
-        this.log = Exec.getLogger(getClass());
-    }
+    private static final Logger log = LoggerFactory.getLogger(CalciteFilterPlugin.class);
 
     @Override
     public void transaction(ConfigSource config, Schema inputSchema, FilterPlugin.Control control) {
