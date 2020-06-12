@@ -2,14 +2,15 @@ package org.embulk.filter.calcite;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -116,19 +117,23 @@ public class CalciteFilterPlugin implements FilterPlugin {
     private String buildJdbcUrl() {
         // build a json model to apply Page storage adaptor
         // @see https://github.com/apache/calcite/blob/master/example/csv/src/test/resources/model.json
-        ImmutableMap.Builder<String, Object> map = ImmutableMap.builder();
+
+        final HashMap<String, Object> map = new HashMap<>();
         map.put("version", "1.0");
         map.put("defaultSchema", "page");
-        map.put("schemas", ImmutableList.<Map<String, String>>of(
-                ImmutableMap.of(
-                        "name", "page",
-                        "type", "custom",
-                        "factory", PageSchemaFactory.class.getName()
-                )
-        ));
+
+        final ArrayList<Map<String, String>> schemas = new ArrayList<>();
+        final HashMap<String, String> schema = new HashMap<>();
+        schema.put("name", "page");
+        schema.put("type", "custom");
+        schema.put("factory", PageSchemaFactory.class.getName());
+        schemas.add(schema);
+
+        map.put("schemas", schemas);
+
         final String jsonModel;
         try {
-            jsonModel = (new ObjectMapper()).writeValueAsString(map.build());
+            jsonModel = (new ObjectMapper()).writeValueAsString(map);
         } catch (final JsonProcessingException ex) {
             throw new RuntimeException("Unexpected fatal error.", ex);
         }
@@ -148,7 +153,7 @@ public class CalciteFilterPlugin implements FilterPlugin {
 
     private JdbcSchema getQuerySchema(ResultSetMetaData metadata)
             throws SQLException {
-        ImmutableList.Builder<JdbcColumn> columns = ImmutableList.builder();
+        final ArrayList<JdbcColumn> columns = new ArrayList<>();
         for (int i = 0; i < metadata.getColumnCount(); i++) {
             int index = i + 1; // JDBC column index begins from 1
             columns.add(new JdbcColumn(
@@ -158,7 +163,7 @@ public class CalciteFilterPlugin implements FilterPlugin {
                     metadata.getPrecision(index),
                     metadata.getScale(index)));
         }
-        return new JdbcSchema(columns.build());
+        return new JdbcSchema(Collections.unmodifiableList(columns));
     }
 
     private ResultSet executeQuery(Statement stat, String query) {
@@ -196,11 +201,11 @@ public class CalciteFilterPlugin implements FilterPlugin {
 
     private List<ColumnGetter> newColumnGetters(ColumnGetterFactory factory,
                                                 JdbcSchema querySchema) {
-        ImmutableList.Builder<ColumnGetter> getters = ImmutableList.builder();
+        final ArrayList<ColumnGetter> getters = new ArrayList<>();
         for (JdbcColumn column : querySchema.getColumns()) {
             getters.add(factory.newColumnGetter(null, null, column, newJdbcColumnOption()));
         }
-        return getters.build();
+        return Collections.unmodifiableList(getters);
     }
 
     private JdbcColumnOption newJdbcColumnOption() {
