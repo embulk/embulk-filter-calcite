@@ -1,25 +1,25 @@
 package org.embulk.filter.calcite;
 
-import com.google.common.base.Optional;
-import com.google.common.base.Throwables;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.inject.Inject;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 import org.apache.calcite.jdbc.Driver;
 import org.embulk.config.Config;
 import org.embulk.config.ConfigDefault;
 import org.embulk.config.ConfigException;
-import org.embulk.config.ConfigInject;
 import org.embulk.config.ConfigSource;
 import org.embulk.config.Task;
 import org.embulk.config.TaskSource;
@@ -42,15 +42,11 @@ import org.embulk.spi.Schema;
 import org.embulk.spi.unit.ToStringMap;
 import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class CalciteFilterPlugin implements FilterPlugin {
 
-    private final Logger log;
-
-    @Inject
-    public CalciteFilterPlugin() {
-        this.log = Exec.getLogger(getClass());
-    }
+    private static final Logger log = LoggerFactory.getLogger(CalciteFilterPlugin.class);
 
     @Override
     public void transaction(ConfigSource config, Schema inputSchema, FilterPlugin.Control control) {
@@ -73,7 +69,7 @@ public class CalciteFilterPlugin implements FilterPlugin {
                 querySchema = getQuerySchema(task, conn);
                 task.setQuerySchema(querySchema);
             } catch (SQLException e) {
-                throw Throwables.propagate(e);
+                throw new RuntimeException(e);
             }
 
             control.run(task.dump(), buildOutputSchema(task, querySchema));
@@ -114,24 +110,33 @@ public class CalciteFilterPlugin implements FilterPlugin {
         try {
             return conn.prepareStatement(query);
         } catch (SQLException e) {
-            throw Throwables.propagate(e);
+            throw new RuntimeException(e);
         }
     }
 
     private String buildJdbcUrl() {
         // build a json model to apply Page storage adaptor
         // @see https://github.com/apache/calcite/blob/master/example/csv/src/test/resources/model.json
-        ImmutableMap.Builder<String, Object> map = ImmutableMap.builder();
+
+        final HashMap<String, Object> map = new HashMap<>();
         map.put("version", "1.0");
         map.put("defaultSchema", "page");
-        map.put("schemas", ImmutableList.<Map<String, String>>of(
-                ImmutableMap.of(
-                        "name", "page",
-                        "type", "custom",
-                        "factory", PageSchemaFactory.class.getName()
-                )
-        ));
-        String jsonModel = Exec.getModelManager().writeObject(map.build());
+
+        final ArrayList<Map<String, String>> schemas = new ArrayList<>();
+        final HashMap<String, String> schema = new HashMap<>();
+        schema.put("name", "page");
+        schema.put("type", "custom");
+        schema.put("factory", PageSchemaFactory.class.getName());
+        schemas.add(schema);
+
+        map.put("schemas", schemas);
+
+        final String jsonModel;
+        try {
+            jsonModel = (new ObjectMapper()).writeValueAsString(map);
+        } catch (final JsonProcessingException ex) {
+            throw new RuntimeException("Unexpected fatal error.", ex);
+        }
 
         // build Jdbc URL
         return String.format(Locale.ENGLISH, "jdbc:calcite:model=inline:%s", jsonModel);
@@ -148,7 +153,7 @@ public class CalciteFilterPlugin implements FilterPlugin {
 
     private JdbcSchema getQuerySchema(ResultSetMetaData metadata)
             throws SQLException {
-        ImmutableList.Builder<JdbcColumn> columns = ImmutableList.builder();
+        final ArrayList<JdbcColumn> columns = new ArrayList<>();
         for (int i = 0; i < metadata.getColumnCount(); i++) {
             int index = i + 1; // JDBC column index begins from 1
             columns.add(new JdbcColumn(
@@ -158,7 +163,7 @@ public class CalciteFilterPlugin implements FilterPlugin {
                     metadata.getPrecision(index),
                     metadata.getScale(index)));
         }
-        return new JdbcSchema(columns.build());
+        return new JdbcSchema(Collections.unmodifiableList(columns));
     }
 
     private ResultSet executeQuery(Statement stat, String query) {
@@ -175,7 +180,7 @@ public class CalciteFilterPlugin implements FilterPlugin {
     }
 
     private Schema buildOutputSchema(PluginTask task, JdbcSchema querySchema) {
-        ColumnGetterFactory factory = newColumnGetterFactory(task, Optional.<PageBuilder>absent());
+        ColumnGetterFactory factory = newColumnGetterFactory(task, Optional.<PageBuilder>empty());
         List<ColumnGetter> getters = newColumnGetters(factory, querySchema);
 
         Schema.Builder schema = Schema.builder();
@@ -196,11 +201,11 @@ public class CalciteFilterPlugin implements FilterPlugin {
 
     private List<ColumnGetter> newColumnGetters(ColumnGetterFactory factory,
                                                 JdbcSchema querySchema) {
-        ImmutableList.Builder<ColumnGetter> getters = ImmutableList.builder();
+        final ArrayList<ColumnGetter> getters = new ArrayList<>();
         for (JdbcColumn column : querySchema.getColumns()) {
             getters.add(factory.newColumnGetter(null, null, column, newJdbcColumnOption()));
         }
-        return getters.build();
+        return Collections.unmodifiableList(getters);
     }
 
     private JdbcColumnOption newJdbcColumnOption() {
@@ -216,7 +221,7 @@ public class CalciteFilterPlugin implements FilterPlugin {
         // Set input schema in PageSchema for various types of executor plugins
         PageSchema.schema = inputSchema;
 
-        PageBuilder pageBuilder = new PageBuilder(task.getBufferAllocator(), outputSchema, output);
+        PageBuilder pageBuilder = new PageBuilder(Exec.getBufferAllocator(), outputSchema, output);
         PageConverter pageConverter = newPageConverter(task, inputSchema);
         ColumnGetterFactory factory = newColumnGetterFactory(task, Optional.of(pageBuilder));
         List<ColumnGetter> getters = newColumnGetters(factory, task.getQuerySchema());
@@ -251,9 +256,6 @@ public class CalciteFilterPlugin implements FilterPlugin {
         @Config("options")
         @ConfigDefault("{}")
         public ToStringMap getOptions();
-
-        @ConfigInject
-        public BufferAllocator getBufferAllocator();
     }
 
     private class FilterPageOutput
@@ -295,7 +297,7 @@ public class CalciteFilterPlugin implements FilterPlugin {
                     pageBuilder.addRecord();
                 }
             } catch (SQLException e) {
-                throw Throwables.propagate(e); // TODO better exception handling? error messages?
+                throw new RuntimeException(e); // TODO better exception handling? error messages?
             } finally {
                 PageTable.pageConverter.remove();
                 PageTable.page.remove();
@@ -313,7 +315,7 @@ public class CalciteFilterPlugin implements FilterPlugin {
             try {
                 preparedStatement.close();
             } catch (SQLException e) {
-                throw Throwables.propagate(e);
+                throw new RuntimeException(e);
             }
         }
     }

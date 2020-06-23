@@ -1,6 +1,7 @@
 package org.embulk.filter.calcite.adapter.page;
 
-import com.google.common.collect.ImmutableMap;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import org.apache.calcite.schema.Table;
 import org.apache.calcite.schema.impl.AbstractSchema;
@@ -16,6 +17,8 @@ public class PageSchema extends AbstractSchema {
 
     @Override
     protected Map<String, Table> getTableMap() {
-        return ImmutableMap.<String, Table>of("$PAGES", new PageTable(schema, null));
+        final HashMap<String, Table> tableMap = new HashMap<>();
+        tableMap.put("$PAGES", new PageTable(schema, null));
+        return Collections.unmodifiableMap(tableMap);
     }
 }
