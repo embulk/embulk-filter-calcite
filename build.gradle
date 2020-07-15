@@ -4,7 +4,6 @@ plugins {
     id "org.embulk.embulk-plugins" version "0.4.2"
     id "checkstyle"
     id "jacoco"
-    id "com.github.kt3k.coveralls" version "2.4.0"
 }
 
 repositories {
@@ -96,7 +95,6 @@ check.dependsOn('checkstyle')
 
 jacocoTestReport {
     reports {
-        xml.enabled = true // coveralls plugin depends on xml format report
         html.enabled = true
     }
 }

@@ -1,6 +1,0 @@
-language: java
-jdk: openjdk8
-script:
-- ./gradlew --info check
-after_success:
-- ./gradlew jacocoTestReport coveralls
