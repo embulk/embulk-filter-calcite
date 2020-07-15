@@ -8,22 +8,21 @@ import org.embulk.input.jdbc.getter.ColumnGetter;
 import org.embulk.input.jdbc.getter.ColumnGetterFactory;
 import org.embulk.spi.PageBuilder;
 import org.embulk.spi.type.Type;
-import org.joda.time.DateTimeZone;
 
 public class FilterColumnGetterFactory
         extends ColumnGetterFactory {
 
-    private final DateTimeZone defaultTimeZone;
+    private final String defaultTimeZone;
 
     /**
      * Creates a factory object to create {@code ColumnGetter}s for converting JdbcType to Embulk
      * type.
      *
      * @param to              a {@code PageBuilder} object that is passed to column getters.
-     * @param defaultTimeZone a {@code DateTimeZone} object passed to timestamp column getters as
+     * @param defaultTimeZone a {@code String} object passed to timestamp column getters as
      *                        default.
      */
-    public FilterColumnGetterFactory(PageBuilder to, DateTimeZone defaultTimeZone) {
+    public FilterColumnGetterFactory(final PageBuilder to, final String defaultTimeZone) {
         super(to, defaultTimeZone);
         // TODO make change super.defaultTimeZone field protected
         this.defaultTimeZone = defaultTimeZone;
@@ -40,7 +39,7 @@ public class FilterColumnGetterFactory
                 .equals("timestamp")) {
             return new FilterTimestampColumnGetter(to,
                     toType,
-                    option.getTimeZone().or(defaultTimeZone));
+                    option.getTimeZone().orElse(defaultTimeZone));
         } else {
             return super.newColumnGetter(con, task, column, option);
         }

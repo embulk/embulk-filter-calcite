@@ -24,7 +24,7 @@ dependencies {
     compileOnly "org.embulk:embulk-api:0.10.3"
     compileOnly "org.embulk:embulk-core:0.10.3"
 
-    compile("org.embulk.input.jdbc:embulk-input-jdbc:0.8.2") {
+    compile("org.embulk.input.jdbc:embulk-input-jdbc:0.11.0") {
         exclude group: "org.embulk", module: "embulk-core"
     }
     compile("org.apache.calcite:calcite-core:1.13.0") {
@@ -38,17 +38,17 @@ dependencies {
     }
 
     testCompile "junit:junit:4.13"
-    testCompile "org.embulk:embulk-api:0.10.3"
-    testCompile "org.embulk:embulk-core:0.10.3"
-    testCompile "org.embulk:embulk-core:0.10.3:tests"
-    testCompile "org.embulk:embulk-standards:0.10.3"
-    testCompile "org.embulk:embulk-junit4:0.10.3"
+    testCompile "org.embulk:embulk-api:0.10.5"
+    testCompile "org.embulk:embulk-core:0.10.5"
+    testCompile "org.embulk:embulk-core:0.10.5:tests"
+    testCompile "org.embulk:embulk-standards:0.10.5"
+    testCompile "org.embulk:embulk-junit4:0.10.5"
 
     // TODO: Remove them.
     // They are now required because the dependency libraries of them are behind sub ClassLoaders.
-    testCompile "org.embulk:embulk-deps-buffer:0.10.3"
-    testCompile "org.embulk:embulk-deps-config:0.10.3"
-    testCompile "org.embulk:embulk-deps-timestamp:0.10.3"
+    testCompile "org.embulk:embulk-deps-buffer:0.10.5"
+    testCompile "org.embulk:embulk-deps-config:0.10.5"
+    testCompile "org.embulk:embulk-deps-timestamp:0.10.5"
 }
 
 embulkPlugin {
