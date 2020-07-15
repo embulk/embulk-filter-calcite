@@ -39,7 +39,6 @@ import org.embulk.spi.Page;
 import org.embulk.spi.PageBuilder;
 import org.embulk.spi.PageOutput;
 import org.embulk.spi.Schema;
-import org.embulk.spi.unit.ToStringMap;
 import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -79,13 +78,12 @@ public class CalciteFilterPlugin implements FilterPlugin {
     }
 
     private void setupPropertiesFromTransaction(PluginTask task, Properties props) {
-        final ToStringMap options = task.getOptions();
         setupProperties(task, props);
     }
 
     private void setupProperties(PluginTask task, Properties props) {
         // @see https://calcite.apache.org/docs/adapter.html#jdbc-connect-string-parameters
-        final ToStringMap options = task.getOptions();
+        final Map<String, String> options = task.getOptions();
         props.setProperty("timeZone", task.getDefaultTimeZone().getID());
 
         // overwrites props with 'options' option
@@ -255,7 +253,7 @@ public class CalciteFilterPlugin implements FilterPlugin {
 
         @Config("options")
         @ConfigDefault("{}")
-        public ToStringMap getOptions();
+        public Map<String, String> getOptions();
     }
 
     private class FilterPageOutput
