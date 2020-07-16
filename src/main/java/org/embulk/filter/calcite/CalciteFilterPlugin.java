@@ -8,6 +8,8 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.DateTimeException;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -16,6 +18,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.TimeZone;
 import org.apache.calcite.jdbc.Driver;
 import org.embulk.config.Config;
 import org.embulk.config.ConfigDefault;
@@ -39,7 +42,6 @@ import org.embulk.spi.Page;
 import org.embulk.spi.PageBuilder;
 import org.embulk.spi.PageOutput;
 import org.embulk.spi.Schema;
-import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,6 +52,8 @@ public class CalciteFilterPlugin implements FilterPlugin {
     @Override
     public void transaction(ConfigSource config, Schema inputSchema, FilterPlugin.Control control) {
         PluginTask task = config.loadConfig(PluginTask.class);
+        throwAgainstInvalidTimeZone(task.getDefaultTimeZone());
+
         Properties props = System.getProperties(); // TODO should be configured as config option
         setupPropertiesFromTransaction(task, props);
 
@@ -84,14 +88,14 @@ public class CalciteFilterPlugin implements FilterPlugin {
     private void setupProperties(PluginTask task, Properties props) {
         // @see https://calcite.apache.org/docs/adapter.html#jdbc-connect-string-parameters
         final Map<String, String> options = task.getOptions();
-        props.setProperty("timeZone", task.getDefaultTimeZone().getID());
+        props.setProperty("timeZone", task.getDefaultTimeZone());
 
         // overwrites props with 'options' option
         props.putAll(options);
     }
 
     private PageConverter newPageConverter(PluginTask task, Schema inputSchema) {
-        return new PageConverter(inputSchema, task.getDefaultTimeZone().toTimeZone());
+        return new PageConverter(inputSchema, TimeZone.getTimeZone(task.getDefaultTimeZone()));
     }
 
     private Connection newConnection(String jdbcUrl, Properties props) {
@@ -211,10 +215,22 @@ public class CalciteFilterPlugin implements FilterPlugin {
         return Exec.newConfigSource().loadConfig(JdbcColumnOption.class);
     }
 
+    private static void throwAgainstInvalidTimeZone(final String timezone) {
+        if (timezone == null) {
+            throw new ConfigException(new NullPointerException("Default time zone is unexpectedly null."));
+        }
+        try {
+            ZoneId.of(timezone);
+        } catch (final DateTimeException ex) {
+            throw new ConfigException("Time zone '" + timezone + "' is not recognised.", ex);
+        }
+    }
+
     @Override
     public PageOutput open(TaskSource taskSource, Schema inputSchema, Schema outputSchema,
                            PageOutput output) {
         PluginTask task = taskSource.loadTask(PluginTask.class);
+        throwAgainstInvalidTimeZone(task.getDefaultTimeZone());
 
         // Set input schema in PageSchema for various types of executor plugins
         PageSchema.schema = inputSchema;
@@ -242,7 +258,7 @@ public class CalciteFilterPlugin implements FilterPlugin {
 
         @Config("default_timezone")
         @ConfigDefault("\"UTC\"")
-        public DateTimeZone getDefaultTimeZone();
+        public String getDefaultTimeZone();
 
         public JdbcSchema getQuerySchema();
 
