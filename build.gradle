@@ -13,7 +13,7 @@ repositories {
 }
 
 group = "org.embulk"
-version = "0.4.0-SNAPSHOT"
+version = "0.4.0"
 description = "Translate schema and column values by SQL-like query provided by Apache Calcite."
 
 sourceCompatibility = 1.8
