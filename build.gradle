@@ -12,9 +12,8 @@ repositories {
     maven { url "https://dl.bintray.com/embulk-input-jdbc/maven" }  // for embulk-input-jdbc
 }
 
-// TODO: Configure its Maven package group.
-// group = ""
-version = "0.3.0"
+group = "org.embulk"
+version = "0.4.0-SNAPSHOT"
 description = "Translate schema and column values by SQL-like query provided by Apache Calcite."
 
 sourceCompatibility = 1.8
