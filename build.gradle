@@ -19,6 +19,16 @@ description = "Translate schema and column values by SQL-like query provided by 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
+tasks.withType(JavaCompile) {
+    options.compilerArgs << "-Xlint:deprecation" << "-Xlint:unchecked"
+    options.encoding = "UTF-8"
+}
+
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
 dependencies {
     compileOnly "org.embulk:embulk-api:0.10.3"
     compileOnly "org.embulk:embulk-core:0.10.3"
@@ -56,10 +66,60 @@ embulkPlugin {
     type = "calcite"
 }
 
+jar {
+    from rootProject.file("LICENSE")
+}
+
+sourcesJar {
+    from rootProject.file("LICENSE")
+}
+
+javadocJar {
+    from rootProject.file("LICENSE")
+}
+
 publishing {
     publications {
         embulkPluginMaven(MavenPublication) {  // Publish it with "publishEmbulkPluginMavenPublicationToMavenRepository".
+            groupId = "${project.group}"
+            artifactId = "${project.name}"
+
             from components.java  // Must be "components.java". The dependency modification works only for it.
+            // javadocJar and sourcesJar are added by java.withJavadocJar() and java.withSourcesJar() above.
+            // See: https://docs.gradle.org/current/javadoc/org/gradle/api/plugins/JavaPluginExtension.html
+
+            pom {  // https://central.sonatype.org/pages/requirements.html
+                packaging "jar"
+
+                name = "${project.name}"
+                description = "${project.description}"
+                url = "https://www.embulk.org/"
+
+                licenses {
+                    license {
+                        // http://central.sonatype.org/pages/requirements.html#license-information
+                        name = "The Apache License, Version 2.0"
+                        url = "https://www.apache.org/licenses/LICENSE-2.0.txt"
+                    }
+                }
+
+                developers {
+                    developer {
+                        name = "Muga Nishizawa"
+                        email = "muga.nishizawa@gmail.com"
+                    }
+                    developer {
+                        name = "Dai MIKURUBE"
+                        email = "dmikurube@treasure-data.com"
+                    }
+                }
+
+                scm {
+                    connection = "scm:git:git://github.com/embulk/embulk-filter-calcite.git"
+                    developerConnection = "scm:git:git@github.com:embulk/embulk-filter-calcite.git"
+                    url = "https://github.com/embulk/embulk-filter-calcite"
+                }
+            }
         }
     }
     repositories {
@@ -68,11 +128,11 @@ publishing {
 }
 
 gem {
-    authors = [ "Muga Nishizawa" ]
-    email = [ "muga.nishizawa@gmail.com" ]
+    authors = [ "Muga Nishizawa", "Dai MIKURUBE" ]
+    email = [ "muga.nishizawa@gmail.com", "dmikurube@treasure-data.com" ]
     summary = "Apache Calcite filter plugin for Embulk"
-    homepage = "https://github.com/muga/embulk-filter-calcite"
-    licenses = [ "Apache 2.0" ]
+    homepage = "https://github.com/embulk/embulk-filter-calcite"
+    licenses = [ "Apache-2.0" ]
 }
 
 gemPush {

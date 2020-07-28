@@ -73,7 +73,7 @@ public class TestCalciteFilterPlugin {
      *
      * @throws Exception
      *
-     * @see https://github.com/muga/embulk-filter-calcite/issues/13
+     * @see https://github.com/embulk/embulk-filter-calcite/issues/13
      * @see https://issues.apache.org/jira/browse/CALCITE-1673
      */
     @Test
