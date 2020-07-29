@@ -6,7 +6,7 @@
 
 * **Plugin type**: filter
 
-This plugin allows users to translate rows flexibly by SQL queries specified by them. 
+This plugin allows users to translate rows flexibly by SQL queries specified by them.
 
 ## Architecture
 
@@ -76,5 +76,11 @@ SQL language provided by Apache Calcite: https://calcite.apache.org/docs/referen
 ## Build
 
 ```
-$ ./gradlew gem  # -t to watch change of files and rebuild continuously
+$ ./gradlew gem
+```
+
+## Release
+
+```
+$ ./gradlew gemPush
 ```
