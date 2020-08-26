@@ -47,6 +47,8 @@ This config enables removing rows not associated to id 1 and 2 from Pages.
 filters:
   - type: calcite
     query: SELECT * FROM $PAGES WHERE id IN (1, 2)
+    options:
+      caseSensitive: false # this option require when lowser column name use.
 ```
 
 The following is an example by LIKE operator and enables removing rows not matched at a specified pattern from Pages.
@@ -54,6 +56,8 @@ The following is an example by LIKE operator and enables removing rows not match
 filters:
   - type: calcite
     query: SELECT * FROM $PAGES WHERE message LIKE '%EMBULK%'
+    options:
+      caseSensitive: false # this option require when lowser column name use.
 ```
 
 This enables adding new column and inserting the value combined 2 string column values.
@@ -61,6 +65,8 @@ This enables adding new column and inserting the value combined 2 string column 
 filters:
   - type: calcite
     query: SELECT first_name || last_name AS name, * FROM $PAGES
+    options:
+      caseSensitive: false # this option require when lowser column name use.
 ```
 
 Adds the new column by CURRENT_TIMESTAMP function.
