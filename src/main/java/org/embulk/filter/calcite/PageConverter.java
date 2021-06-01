@@ -1,6 +1,7 @@
 package org.embulk.filter.calcite;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.TimeZone;
 import org.embulk.spi.Column;
 import org.embulk.spi.ColumnVisitor;
@@ -81,10 +82,10 @@ public class PageConverter implements ColumnVisitor {
             row[i] = null;
         } else {
             // Embulk's timestamp is converted into java.sql.Timestmap
-            org.embulk.spi.time.Timestamp timestamp = pageReader.getTimestamp(i);
-            long milliseconds = timestamp.getEpochSecond() * 1000 + timestamp.getNano() / 1000000;
+            final Instant instant = getInstant(pageReader, i);
+            long milliseconds = instant.getEpochSecond() * 1000 + instant.getNano() / 1000000;
             java.sql.Timestamp ts = new java.sql.Timestamp(milliseconds);
-            ts.setNanos(timestamp.getNano());
+            ts.setNanos(instant.getNano());
             row[i] = ts;
         }
     }
@@ -98,5 +99,10 @@ public class PageConverter implements ColumnVisitor {
         } else {
             row[i] = pageReader.getJson(i).toJson();
         }
+    }
+
+    @SuppressWarnings("deprecation")
+    private static Instant getInstant(final PageReader pageReader, final int index) {
+        return pageReader.getTimestamp(index).getInstant();
     }
 }

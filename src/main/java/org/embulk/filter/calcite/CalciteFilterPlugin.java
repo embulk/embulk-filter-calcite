@@ -20,11 +20,8 @@ import java.util.Optional;
 import java.util.Properties;
 import java.util.TimeZone;
 import org.apache.calcite.jdbc.Driver;
-import org.embulk.config.Config;
-import org.embulk.config.ConfigDefault;
 import org.embulk.config.ConfigException;
 import org.embulk.config.ConfigSource;
-import org.embulk.config.Task;
 import org.embulk.config.TaskSource;
 import org.embulk.filter.calcite.adapter.page.PageSchema;
 import org.embulk.filter.calcite.adapter.page.PageSchemaFactory;
@@ -42,17 +39,28 @@ import org.embulk.spi.Page;
 import org.embulk.spi.PageBuilder;
 import org.embulk.spi.PageOutput;
 import org.embulk.spi.Schema;
+import org.embulk.util.config.Config;
+import org.embulk.util.config.ConfigDefault;
+import org.embulk.util.config.ConfigMapper;
+import org.embulk.util.config.ConfigMapperFactory;
+import org.embulk.util.config.Task;
+import org.embulk.util.config.TaskMapper;
+import org.embulk.util.config.modules.ZoneIdModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class CalciteFilterPlugin implements FilterPlugin {
+    protected static final ConfigMapperFactory CONFIG_MAPPER_FACTORY =
+            ConfigMapperFactory.builder().addDefaultModules().addModule(ZoneIdModule.withLegacyNames()).build();
+
+    protected static final ConfigMapper CONFIG_MAPPER = CONFIG_MAPPER_FACTORY.createConfigMapper();
+    protected static final TaskMapper TASK_MAPPER = CONFIG_MAPPER_FACTORY.createTaskMapper();
 
     private static final Logger log = LoggerFactory.getLogger(CalciteFilterPlugin.class);
 
     @Override
     public void transaction(ConfigSource config, Schema inputSchema, FilterPlugin.Control control) {
-        PluginTask task = config.loadConfig(PluginTask.class);
-        throwAgainstInvalidTimeZone(task.getDefaultTimeZone());
+        final PluginTask task = CONFIG_MAPPER.map(config, PluginTask.class);
 
         Properties props = System.getProperties(); // TODO should be configured as config option
         setupPropertiesFromTransaction(task, props);
@@ -88,7 +96,7 @@ public class CalciteFilterPlugin implements FilterPlugin {
     private void setupProperties(PluginTask task, Properties props) {
         // @see https://calcite.apache.org/docs/adapter.html#jdbc-connect-string-parameters
         final Map<String, String> options = task.getOptions();
-        props.setProperty("timeZone", task.getDefaultTimeZone());
+        props.setProperty("timeZone", task.getDefaultTimeZone().getId());
 
         // overwrites props with 'options' option
         props.putAll(options);
@@ -212,30 +220,18 @@ public class CalciteFilterPlugin implements FilterPlugin {
 
     private JdbcColumnOption newJdbcColumnOption() {
         // TODO need to improve for supporting column_options: option
-        return Exec.newConfigSource().loadConfig(JdbcColumnOption.class);
-    }
-
-    private static void throwAgainstInvalidTimeZone(final String timezone) {
-        if (timezone == null) {
-            throw new ConfigException(new NullPointerException("Default time zone is unexpectedly null."));
-        }
-        try {
-            ZoneId.of(timezone);
-        } catch (final DateTimeException ex) {
-            throw new ConfigException("Time zone '" + timezone + "' is not recognised.", ex);
-        }
+        return CONFIG_MAPPER.map(CONFIG_MAPPER_FACTORY.newConfigSource(), JdbcColumnOption.class);
     }
 
     @Override
     public PageOutput open(TaskSource taskSource, Schema inputSchema, Schema outputSchema,
                            PageOutput output) {
-        PluginTask task = taskSource.loadTask(PluginTask.class);
-        throwAgainstInvalidTimeZone(task.getDefaultTimeZone());
+        final PluginTask task = TASK_MAPPER.map(taskSource, PluginTask.class);
 
         // Set input schema in PageSchema for various types of executor plugins
         PageSchema.schema = inputSchema;
 
-        PageBuilder pageBuilder = new PageBuilder(Exec.getBufferAllocator(), outputSchema, output);
+        final PageBuilder pageBuilder = Exec.getPageBuilder(Exec.getBufferAllocator(), outputSchema, output);
         PageConverter pageConverter = newPageConverter(task, inputSchema);
         ColumnGetterFactory factory = newColumnGetterFactory(task, Optional.of(pageBuilder));
         List<ColumnGetter> getters = newColumnGetters(factory, task.getQuerySchema());
@@ -258,7 +254,7 @@ public class CalciteFilterPlugin implements FilterPlugin {
 
         @Config("default_timezone")
         @ConfigDefault("\"UTC\"")
-        public String getDefaultTimeZone();
+        public ZoneId getDefaultTimeZone();
 
         public JdbcSchema getQuerySchema();
 

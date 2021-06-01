@@ -2,6 +2,7 @@ package org.embulk.filter.calcite.adapter.page;
 
 import org.apache.calcite.linq4j.Enumerator;
 import org.embulk.filter.calcite.PageConverter;
+import org.embulk.spi.Exec;
 import org.embulk.spi.Page;
 import org.embulk.spi.PageReader;
 import org.embulk.spi.Schema;
@@ -20,7 +21,7 @@ public class PageEnumerator implements Enumerator<Object[]> {
      */
     public PageEnumerator(Schema schema, PageConverter pageConverter) {
         this.schema = schema;
-        this.pageReader = new PageReader(schema);
+        this.pageReader = Exec.getPageReader(schema);
         this.pageConverter = pageConverter;
     }
 

@@ -8,12 +8,10 @@ plugins {
 
 repositories {
     mavenCentral()
-    jcenter()
-    maven { url "https://dl.bintray.com/embulk-input-jdbc/maven" }  // for embulk-input-jdbc
 }
 
 group = "org.embulk"
-version = "0.4.0-SNAPSHOT"
+version = "0.5.0-SNAPSHOT"
 description = "Translate schema and column values by SQL-like query provided by Apache Calcite."
 
 sourceCompatibility = 1.8
@@ -30,34 +28,68 @@ java {
 }
 
 dependencies {
-    compileOnly "org.embulk:embulk-api:0.10.3"
-    compileOnly "org.embulk:embulk-core:0.10.3"
+    compileOnly "org.embulk:embulk-api:0.10.31"
+    compileOnly "org.embulk:embulk-spi:0.10.31"
 
-    compile("org.embulk.input.jdbc:embulk-input-jdbc:0.11.0") {
-        exclude group: "org.embulk", module: "embulk-core"
+    compile("org.embulk:embulk-input-jdbc:0.12.1") {
+        // They conflict with embulk-core. They are once excluded here,
+        // and added explicitly with versions exactly the same with embulk-core:0.10.31.
+        exclude group: "com.fasterxml.jackson.core", module: "jackson-annotations"
+        exclude group: "com.fasterxml.jackson.core", module: "jackson-core"
+        exclude group: "com.fasterxml.jackson.core", module: "jackson-databind"
+        exclude group: "com.fasterxml.jackson.datatype", module: "jackson-datatype-jdk8"
+        exclude group: "javax.validation", module: "validation-api"
     }
+
+    compile("org.embulk:embulk-util-config:0.3.0") {
+        // They conflict with embulk-core. They are once excluded here,
+        // and added explicitly with versions exactly the same with embulk-core:0.10.31.
+        exclude group: "com.fasterxml.jackson.core", module: "jackson-annotations"
+        exclude group: "com.fasterxml.jackson.core", module: "jackson-core"
+        exclude group: "com.fasterxml.jackson.core", module: "jackson-databind"
+        exclude group: "com.fasterxml.jackson.datatype", module: "jackson-datatype-jdk8"
+        exclude group: "javax.validation", module: "validation-api"
+    }
+
     compile("org.apache.calcite:calcite-core:1.13.0") {
-        // They conflict with embulk-core.
+        // slf4j-api conflicts with embulk-api.
         exclude group: "org.slf4j", module:"slf4j-api"
+
+        // Apache Commons Lang 3 conflicts with embulk-core till 0.10.31 (in plan).
+        // They are once excluded here, and added explicitly with versions exactly the same with embulk-core:0.10.31.
         exclude group: "org.apache.commons", module: "commons-lang3"
+
+        // Those Jackson libraries conflict with embulk-core till 0.10.31 (in plan).
+        // They are once excluded here, and added explicitly with versions exactly the same with embulk-core:0.10.31.
         exclude group: "com.fasterxml.jackson.core", module: "jackson-databind"
         exclude group: "com.fasterxml.jackson.core", module: "jackson-annotations"
         exclude group: "com.fasterxml.jackson.core", module: "jackson-core"
+
+        // Guava conflicts with embulk-core till 0.10.33 (in plan).
+        // They are once excluded here, and added explicitly with versions exactly the same with embulk-core:0.10.31.
         exclude group: "com.google.guava", module: "guava"
     }
 
-    testCompile "junit:junit:4.13"
-    testCompile "org.embulk:embulk-api:0.10.5"
-    testCompile "org.embulk:embulk-core:0.10.5"
-    testCompile "org.embulk:embulk-core:0.10.5:tests"
-    testCompile "org.embulk:embulk-standards:0.10.5"
-    testCompile "org.embulk:embulk-junit4:0.10.5"
+    // They are once excluded from transitive dependencies of other dependencies,
+    // and added explicitly with versions exactly the same with embulk-core:0.10.31.
+    compile "org.apache.commons:commons-lang3:3.4"
+    compile "com.fasterxml.jackson.core:jackson-annotations:2.6.7"
+    compile "com.fasterxml.jackson.core:jackson-core:2.6.7"
+    compile "com.fasterxml.jackson.core:jackson-databind:2.6.7"
+    compile "com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.6.7"
+    compile "javax.validation:validation-api:1.1.0.Final"
+    compile "com.google.guava:guava:18.0"
 
-    // TODO: Remove them.
-    // They are now required because the dependency libraries of them are behind sub ClassLoaders.
-    testCompile "org.embulk:embulk-deps-buffer:0.10.5"
-    testCompile "org.embulk:embulk-deps-config:0.10.5"
-    testCompile "org.embulk:embulk-deps-timestamp:0.10.5"
+    testCompile "junit:junit:4.13"
+    testCompile "org.embulk:embulk-core:0.10.31"
+    testCompile "org.embulk:embulk-core:0.10.31:tests"
+    testCompile "org.embulk:embulk-junit4:0.10.31"
+    testCompile "org.embulk:embulk-deps:0.10.31"
+
+    testCompile "org.embulk:embulk-formatter-csv:0.10.31"
+    testCompile "org.embulk:embulk-input-file:0.10.31"
+    testCompile "org.embulk:embulk-output-file:0.10.31"
+    testCompile "org.embulk:embulk-parser-csv:0.10.31"
 }
 
 embulkPlugin {
