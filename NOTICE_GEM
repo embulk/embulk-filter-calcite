@@ -1,0 +1,50 @@
+embulk-filter-calcite
+Copyright 2017 The Embulk project
+
+The gem distribution of this product includes software developed in a part of the Embulk project (https://www.embulk.org/).
+It has been licenced under the Apache Software License, Version 2.0.
+
+The gem distribution of this product includes JARs of the Jackson project (https://github.com/FasterXML/jackson), as-is.
+They are licensed under the Apache Software License, Version 2.0.
+
+The gem distribution of this product includes JAR of the Jakarta Bean Validation API 1.1 (https://beanvalidation.org/1.1/), as-is.
+It is licensed under the Apache Software License, Version 2.0.
+
+The gem distribution of this product includes JARs of the Apache Calcite (https://calcite.apache.org/), as-is.
+They are licensed under the Apache Software License, Version 2.0.
+
+The gem distribution of this product includes JAR of Guava (https://guava.dev/), as-is.
+It is licensed under the Apache Software License, Version 2.0.
+
+The gem distribution of this product includes JAR of the JSR305 Annotations for Findbugs (https://code.google.com/archive/p/jsr-305/), as-is.
+It is licensed under the Apache Software License, Version 2.0.
+
+The gem distribution of this product includes JAR of the Apache Commons Codec (https://commons.apache.org/proper/commons-codec/), as-is.
+It is licensed under the Apache Software License, Version 2.0.
+
+The gem distribution of this product includes JAR of the Apache Commons DBCP (https://commons.apache.org/proper/commons-dbcp/), as-is.
+It is licensed under the Apache Software License, Version 2.0.
+
+The gem distribution of this product includes JAR of the Apache Commons Lang (https://commons.apache.org/proper/commons-lang/), as-is.
+It is licensed under the Apache Software License, Version 2.0.
+
+The gem distribution of this product includes JAR of the Apache Commons Logging (https://commons.apache.org/proper/commons-logging/), as-is.
+It is licensed under the Apache Software License, Version 2.0.
+
+The gem distribution of this product includes JAR of the Apache Commons Pool (https://commons.apache.org/proper/commons-pool/), as-is.
+It is licensed under the Apache Software License, Version 2.0.
+
+The gem distribution of this product includes JAR of the Aggregate Designer Algorithm (https://github.com/julianhyde/aggdesigner), as-is.
+It is licensed under the Apache Software License, Version 2.0.
+
+The gem distribution of this product includes JAR of the Apache HttpClient 4.5 (http://hc.apache.org/httpcomponents-client-4.5.x/index.html), as-is.
+It is licensed under the Apache Software License, Version 2.0.
+
+The gem distribution of this product includes JAR of the Apache HttpCore 4.5 (http://hc.apache.org/httpcomponents-core-4.4.x/index.html), as-is.
+It is licensed under the Apache Software License, Version 2.0.
+
+The gem distribution of this product includes JARs of Janino (https://janino-compiler.github.io/janino/), as-is.
+They are licensed under the 3-Clause BSD License. (https://janino-compiler.github.io/janino/#license)
+
+The gem distribution of this product includes JARs of the Core Protocol Buffers library 3.1.0 (https://developers.google.com/protocol-buffers/), as-is.
+It is licensed under the 2-Clause BSD License.
