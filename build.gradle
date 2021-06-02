@@ -1,6 +1,7 @@
 plugins {
     id "java"
     id "maven-publish"
+    id "signing"
     id "org.embulk.embulk-plugins" version "0.4.2"
     id "checkstyle"
     id "jacoco"
@@ -112,9 +113,9 @@ javadocJar {
 
 publishing {
     publications {
-        embulkPluginMaven(MavenPublication) {  // Publish it with "publishEmbulkPluginMavenPublicationToMavenRepository".
-            groupId = "${project.group}"
-            artifactId = "${project.name}"
+        maven(MavenPublication) {
+            groupId = project.group
+            artifactId = project.name
 
             from components.java  // Must be "components.java". The dependency modification works only for it.
             // javadocJar and sourcesJar are added by java.withJavadocJar() and java.withSourcesJar() above.
@@ -123,8 +124,8 @@ publishing {
             pom {  // https://central.sonatype.org/pages/requirements.html
                 packaging "jar"
 
-                name = "${project.name}"
-                description = "${project.description}"
+                name = project.name
+                description = project.description
                 url = "https://www.embulk.org/"
 
                 licenses {
@@ -154,9 +155,26 @@ publishing {
             }
         }
     }
+
     repositories {
-        // TODO: Configure some public Maven repo(s).
+        maven {  // publishMavenPublicationToMavenCentralRepository
+            name = "mavenCentral"
+            if (project.version.endsWith("-SNAPSHOT")) {
+                url "https://oss.sonatype.org/content/repositories/snapshots"
+            } else {
+                url "https://oss.sonatype.org/service/local/staging/deploy/maven2"
+            }
+
+            credentials {
+                username = project.hasProperty("ossrhUsername") ? ossrhUsername : ""
+                password = project.hasProperty("ossrhPassword") ? ossrhPassword : ""
+            }
+        }
     }
+}
+
+signing {
+    sign publishing.publications.maven
 }
 
 gem {
