@@ -1,5 +1,6 @@
 package org.embulk.filter.calcite.getter;
 
+import java.time.ZoneId;
 import org.embulk.input.jdbc.AbstractJdbcInputPlugin;
 import org.embulk.input.jdbc.JdbcColumn;
 import org.embulk.input.jdbc.JdbcColumnOption;
@@ -12,7 +13,7 @@ import org.embulk.spi.type.Type;
 public class FilterColumnGetterFactory
         extends ColumnGetterFactory {
 
-    private final String defaultTimeZone;
+    private final ZoneId defaultTimeZone;
 
     /**
      * Creates a factory object to create {@code ColumnGetter}s for converting JdbcType to Embulk
@@ -22,7 +23,7 @@ public class FilterColumnGetterFactory
      * @param defaultTimeZone a {@code String} object passed to timestamp column getters as
      *                        default.
      */
-    public FilterColumnGetterFactory(final PageBuilder to, final String defaultTimeZone) {
+    public FilterColumnGetterFactory(final PageBuilder to, final ZoneId defaultTimeZone) {
         super(to, defaultTimeZone);
         // TODO make change super.defaultTimeZone field protected
         this.defaultTimeZone = defaultTimeZone;

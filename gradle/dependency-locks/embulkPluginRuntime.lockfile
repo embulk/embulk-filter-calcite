@@ -1,22 +1,31 @@
 # This is a Gradle generated file for dependency locking.
 # Manual edits can break the build and are not advised.
 # This file is expected to be part of source control.
+com.fasterxml.jackson.core:jackson-annotations:2.6.7
+com.fasterxml.jackson.core:jackson-core:2.6.7
+com.fasterxml.jackson.core:jackson-databind:2.6.7
+com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.6.7
 com.google.code.findbugs:jsr305:3.0.1
+com.google.guava:guava:18.0
 com.google.protobuf:protobuf-java:3.1.0
 commons-codec:commons-codec:1.9
 commons-dbcp:commons-dbcp:1.4
 commons-lang:commons-lang:2.4
 commons-logging:commons-logging:1.2
 commons-pool:commons-pool:1.5.4
+javax.validation:validation-api:1.1.0.Final
 net.hydromatic:aggdesigner-algorithm:6.0
 org.apache.calcite.avatica:avatica-core:1.10.0
 org.apache.calcite.avatica:avatica-metrics:1.10.0
 org.apache.calcite:calcite-core:1.13.0
 org.apache.calcite:calcite-linq4j:1.13.0
+org.apache.commons:commons-lang3:3.4
 org.apache.httpcomponents:httpclient:4.5.2
 org.apache.httpcomponents:httpcore:4.4.4
 org.codehaus.janino:commons-compiler:2.7.6
 org.codehaus.janino:janino:2.7.6
-org.embulk.input.jdbc:embulk-input-jdbc:0.11.0
-org.embulk:embulk-util-rubytime:0.3.0
-org.embulk:embulk-util-timestamp:0.2.0
+org.embulk:embulk-input-jdbc:0.12.1
+org.embulk:embulk-util-config:0.3.0
+org.embulk:embulk-util-json:0.1.1
+org.embulk:embulk-util-rubytime:0.3.2
+org.embulk:embulk-util-timestamp:0.2.1
