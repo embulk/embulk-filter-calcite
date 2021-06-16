@@ -21,7 +21,7 @@ public class PageEnumerator implements Enumerator<Object[]> {
      */
     public PageEnumerator(Schema schema, PageConverter pageConverter) {
         this.schema = schema;
-        this.pageReader = Exec.getPageReader(schema);
+        this.pageReader = getPageReader(schema);
         this.pageConverter = pageConverter;
     }
 
@@ -53,4 +53,24 @@ public class PageEnumerator implements Enumerator<Object[]> {
             pageReader.close();
         }
     }
+
+    @SuppressWarnings("deprecation")
+    private static PageReader getPageReader(final Schema schema) {
+        if (HAS_EXEC_GET_PAGE_READER) {
+            return Exec.getPageReader(schema);
+        } else {
+            return new PageReader(schema);
+        }
+    }
+
+    private static boolean hasExecGetPageReader() {
+        try {
+            Exec.class.getMethod("getPageReader", Schema.class);
+        } catch (final NoSuchMethodException ex) {
+            return false;
+        }
+        return true;
+    }
+
+    private static final boolean HAS_EXEC_GET_PAGE_READER = hasExecGetPageReader();
 }
