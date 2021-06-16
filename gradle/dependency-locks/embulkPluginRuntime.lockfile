@@ -24,7 +24,7 @@ org.apache.httpcomponents:httpclient:4.5.2
 org.apache.httpcomponents:httpcore:4.4.4
 org.codehaus.janino:commons-compiler:2.7.6
 org.codehaus.janino:janino:2.7.6
-org.embulk:embulk-input-jdbc:0.12.1
+org.embulk:embulk-input-jdbc:0.12.2
 org.embulk:embulk-util-config:0.3.0
 org.embulk:embulk-util-json:0.1.1
 org.embulk:embulk-util-rubytime:0.3.2

@@ -231,7 +231,7 @@ public class CalciteFilterPlugin implements FilterPlugin {
         // Set input schema in PageSchema for various types of executor plugins
         PageSchema.schema = inputSchema;
 
-        final PageBuilder pageBuilder = Exec.getPageBuilder(Exec.getBufferAllocator(), outputSchema, output);
+        final PageBuilder pageBuilder = getPageBuilder(Exec.getBufferAllocator(), outputSchema, output);
         PageConverter pageConverter = newPageConverter(task, inputSchema);
         ColumnGetterFactory factory = newColumnGetterFactory(task, Optional.of(pageBuilder));
         List<ColumnGetter> getters = newColumnGetters(factory, task.getQuerySchema());
@@ -329,4 +329,24 @@ public class CalciteFilterPlugin implements FilterPlugin {
             }
         }
     }
+
+    @SuppressWarnings("deprecation")
+    private static PageBuilder getPageBuilder(final BufferAllocator bufferAllocator, final Schema schema, final PageOutput output) {
+        if (HAS_EXEC_GET_PAGE_BUILDER) {
+            return Exec.getPageBuilder(bufferAllocator, schema, output);
+        } else {
+            return new PageBuilder(bufferAllocator, schema, output);
+        }
+    }
+
+    private static boolean hasExecGetPageBuilder() {
+        try {
+            Exec.class.getMethod("getPageBuilder", BufferAllocator.class, Schema.class, PageOutput.class);
+        } catch (final NoSuchMethodException ex) {
+            return false;
+        }
+        return true;
+    }
+
+    private static final boolean HAS_EXEC_GET_PAGE_BUILDER = hasExecGetPageBuilder();
 }
